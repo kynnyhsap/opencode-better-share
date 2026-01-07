@@ -18,7 +18,7 @@ export const app = new Elysia({ prefix: "/api" })
       const { shareId, sessionId } = body;
 
       // Check if share already exists
-      if (shareExists(shareId)) {
+      if (await shareExists(shareId)) {
         set.status = 409;
         return {
           error: "Share already exists",
@@ -30,7 +30,7 @@ export const app = new Elysia({ prefix: "/api" })
       const secret = randomBytes(24).toString("base64url");
 
       // Store in DB
-      createShare(shareId, sessionId, secret);
+      await createShare(shareId, sessionId, secret);
 
       // Generate presigned PUT URL (1 hour expiry)
       const presignedUrl = await getPresignedPutUrl(shareId, 3600);
@@ -58,7 +58,7 @@ export const app = new Elysia({ prefix: "/api" })
       return { error: "Missing secret" };
     }
 
-    const share = getShare(params.id);
+    const share = await getShare(params.id);
 
     if (!share) {
       set.status = 404;
@@ -79,7 +79,7 @@ export const app = new Elysia({ prefix: "/api" })
   // Get share data (public)
   .get("/share/:id", async ({ params, set }) => {
     // First check if share exists in our DB
-    const share = getShare(params.id);
+    const share = await getShare(params.id);
 
     if (!share) {
       set.status = 404;
@@ -106,7 +106,7 @@ export const app = new Elysia({ prefix: "/api" })
       return { error: "Missing secret" };
     }
 
-    const share = getShare(params.id);
+    const share = await getShare(params.id);
 
     if (!share) {
       set.status = 404;
@@ -122,7 +122,7 @@ export const app = new Elysia({ prefix: "/api" })
     await deleteShareData(params.id);
 
     // Delete from DB
-    deleteShare(params.id);
+    await deleteShare(params.id);
 
     return { ok: true };
   });
