@@ -3,8 +3,8 @@
 
   "build": {
     "builder": "DOCKERFILE",
-    "dockerfilePath": "packages/web/Dockerfile",
-    "watchPatterns": ["packages/web/**"]
+    "dockerfilePath": "web/Dockerfile",
+    "watchPatterns": ["web/**"]
   },
 
   "deploy": {

@@ -94,7 +94,7 @@ Then restart OpenCode.
 If you want to run your own instance of the share backend:
 
 1. Clone the repository
-2. Deploy the `packages/web` Next.js app to Railway or similar
+2. Deploy the `web` Next.js app to Railway or similar
 3. Set up a Cloudflare R2 bucket
 4. Configure environment variables
 5. Set `BETTER_SHARE_API_URL` to your deployment URL

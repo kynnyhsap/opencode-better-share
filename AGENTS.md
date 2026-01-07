@@ -24,8 +24,8 @@ When writing code or debugging issues, consult these official docs:
 
 A monorepo with two packages:
 
-- `packages/plugin` - OpenCode plugin that overrides `/share` and `/unshare` commands
-- `packages/web` - Next.js app with Elysia API, deployed to Railway
+- `plugin` - OpenCode plugin that overrides `/share` and `/unshare` commands
+- `web` - Next.js app with Elysia API, deployed to Railway
 
 **Runtime:** Bun (not Node.js)
 
@@ -42,14 +42,14 @@ bun run lint         # Lint all files with Biome
 bun run check        # Format + lint + organize imports (recommended)
 ```
 
-### Plugin Package (`packages/plugin`)
+### Plugin Package (`plugin`)
 
 ```bash
 bun run build        # Build: bun build src/index.ts --outdir dist --target node
 bun run typecheck    # Type check: tsc --noEmit
 ```
 
-### Web Package (`packages/web`)
+### Web Package (`web`)
 
 ```bash
 bun run dev          # Start dev server: bun --bun next dev
@@ -62,7 +62,7 @@ bun run lint         # Run ESLint: next lint
 
 This project does not have automated tests. Validate changes by:
 
-1. Running `bun run typecheck` in `packages/plugin`
+1. Running `bun run typecheck` in `plugin`
 2. Running `bun run build` in both packages
 3. Manual testing with OpenCode
 
@@ -212,7 +212,7 @@ export class ShareManager {
 
 This project uses Bun's native APIs instead of npm packages:
 
-### PostgreSQL (packages/web)
+### PostgreSQL (web)
 
 Use Bun's built-in SQL client (NOT `pg` or other packages):
 
@@ -224,7 +224,7 @@ const sql = new SQL({ url: process.env.DATABASE_URL });
 const shares = await sql`SELECT * FROM shares WHERE id = ${id}`;
 ```
 
-### S3/R2 Client (packages/web)
+### S3/R2 Client (web)
 
 ```typescript
 const client = new Bun.S3Client({
@@ -239,22 +239,21 @@ const client = new Bun.S3Client({
 
 ```
 better-share/
-├── packages/
-│   ├── plugin/src/
-│   │   ├── index.ts      # Plugin entry, event handlers
-│   │   ├── share.ts      # ShareManager class
-│   │   ├── storage.ts    # Read OpenCode local session files
-│   │   └── types.ts      # TypeScript interfaces
-│   └── web/src/
-│       ├── app/
-│       │   ├── api/[[...slugs]]/route.ts  # Elysia API catch-all
-│       │   ├── share/[id]/page.tsx        # Share viewer
-│       │   ├── page.tsx                   # Home page
-│       │   └── layout.tsx
-│       └── lib/
-│           ├── api.ts    # Elysia routes
-│           ├── db.ts     # PostgreSQL database
-│           └── s3.ts     # S3/R2 operations
+├── plugin/src/
+│   ├── index.ts      # Plugin entry, event handlers
+│   ├── share.ts      # ShareManager class
+│   ├── storage.ts    # Read OpenCode local session files
+│   └── types.ts      # TypeScript interfaces
+├── web/src/
+│   ├── app/
+│   │   ├── api/[[...slugs]]/route.ts  # Elysia API catch-all
+│   │   ├── share/[id]/page.tsx        # Share viewer
+│   │   ├── page.tsx                   # Home page
+│   │   └── layout.tsx
+│   └── lib/
+│       ├── api.ts    # Elysia routes
+│       ├── db.ts     # PostgreSQL database
+│       └── s3.ts     # S3/R2 operations
 ```
 
 ## Environment Variables
@@ -263,7 +262,7 @@ better-share/
 
 - `BETTER_SHARE_API_URL` - API base URL (default: `https://opncd.com`)
 
-### Web (`packages/web/.env`)
+### Web (`web/.env`)
 
 ```env
 S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com

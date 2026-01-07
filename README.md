@@ -30,8 +30,8 @@ Custom sharing for OpenCode sessions at [opncd.com](https://opncd.com).
 
 ## Packages
 
-- `packages/plugin` - OpenCode plugin (`opencode-better-share` on npm)
-- `packages/web` - Next.js web app with Elysia API
+- `plugin` - OpenCode plugin (`opencode-better-share` on npm)
+- `web` - Next.js web app with Elysia API
 
 ## Development
 
@@ -48,7 +48,7 @@ Custom sharing for OpenCode sessions at [opncd.com](https://opncd.com).
    bun install
    ```
 
-2. Set up environment variables in `packages/web/.env`:
+2. Set up environment variables in `web/.env`:
 
    ```env
    S3_ENDPOINT=https://<account_id>.r2.cloudflarestorage.com
@@ -78,7 +78,7 @@ bun run build
 1. Build the plugin:
 
    ```bash
-   cd packages/plugin
+   cd plugin
    bun run build
    ```
 
@@ -91,13 +91,13 @@ bun run build
 3. Create `.opencode/plugin/better-share.ts`:
 
    ```typescript
-   export { BetterSharePlugin as default } from "/absolute/path/to/better-share/packages/plugin/dist/index.js";
+   export { BetterSharePlugin as default } from "/absolute/path/to/better-share/plugin/dist/index.js";
    ```
 
    Or copy the built file:
 
    ```bash
-   cp /path/to/better-share/packages/plugin/dist/index.js .opencode/plugin/better-share.js
+   cp /path/to/better-share/plugin/dist/index.js .opencode/plugin/better-share.js
    ```
 
 4. Set the API URL environment variable:
@@ -120,7 +120,7 @@ bun run build
 1. Build the plugin:
 
    ```bash
-   cd packages/plugin
+   cd plugin
    bun run build
    ```
 

@@ -2,11 +2,10 @@ FROM oven/bun:1.3.5
 
 WORKDIR /app
 
-COPY packages/web/package.json packages/web/bun.lock* ./
-
+COPY web/package.json web/bun.lock* ./
 RUN bun install --frozen-lockfile
 
-COPY packages/web .
+COPY web .
 
 RUN bun run build
 
