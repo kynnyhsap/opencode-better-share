@@ -15,7 +15,7 @@ When writing code or debugging issues, consult these official docs:
 
 **Always check the relevant documentation before:**
 
-- Using Bun-specific APIs (SQLite, S3, etc.)
+- Using Bun-specific APIs (SQL, S3, etc.)
 - Writing Elysia routes or middleware
 - Implementing Next.js App Router patterns
 - Working with the OpenCode plugin SDK
@@ -214,9 +214,14 @@ This project uses Bun's native APIs instead of npm packages:
 
 ### PostgreSQL (packages/web)
 
+Use Bun's built-in SQL client (NOT `pg` or other packages):
+
 ```typescript
-import { Pool } from "pg";
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+import { SQL } from "bun";
+const sql = new SQL({ url: process.env.DATABASE_URL });
+
+// Tagged template queries
+const shares = await sql`SELECT * FROM shares WHERE id = ${id}`;
 ```
 
 ### S3/R2 Client (packages/web)
@@ -267,7 +272,7 @@ S3_SECRET_ACCESS_KEY=xxx
 S3_BUCKET=opncd-shares
 S3_PUBLIC_URL=https://pub-xxx.r2.dev
 BASE_URL=https://opncd.com
-DATABASE_URL=postgresql://user:pass@host:5432/dbname
+DATABASE_URL=postgres://user:pass@host:5432/dbname
 ```
 
 ## Key Patterns

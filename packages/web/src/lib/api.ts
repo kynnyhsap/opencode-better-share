@@ -1,6 +1,6 @@
 import { cors } from "@elysiajs/cors";
+import { randomBytes } from "node:crypto";
 import { Elysia, t } from "elysia";
-import { nanoid } from "nanoid";
 import { createShare, deleteShare, getShare, shareExists } from "./db";
 import { deleteShareData, getPresignedPutUrl, getShareData } from "./s3";
 
@@ -28,7 +28,7 @@ export const app = new Elysia({ prefix: "/api" })
       }
 
       // Generate secret
-      const secret = nanoid(32);
+      const secret = randomBytes(24).toString("base64url");
 
       // Store in DB
       createShare(shareId, sessionId, secret);
