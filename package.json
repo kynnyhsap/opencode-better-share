@@ -1,5 +1,5 @@
 {
-  "name": "opencode-better-share",
+  "name": "@opencode-better-share",
   "private": true,
   "workspaces": [
     "web",

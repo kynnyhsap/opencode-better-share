@@ -2,7 +2,7 @@
   "name": "opencode-better-share",
   "version": "0.1.0",
   "description": "Better session sharing for OpenCode",
-  "author": "",
+  "author": "Andrew Pashynnyk",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
