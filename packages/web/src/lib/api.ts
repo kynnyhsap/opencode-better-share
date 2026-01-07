@@ -9,7 +9,6 @@ const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 export const app = new Elysia({ prefix: "/api" })
   .use(cors())
 
-  // Health check
   .get("/health", () => ({ ok: true, timestamp: Date.now() }))
 
   // Create share - generate secret & presigned URL
