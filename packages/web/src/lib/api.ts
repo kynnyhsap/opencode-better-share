@@ -1,5 +1,5 @@
-import { cors } from "@elysiajs/cors";
 import { randomBytes } from "node:crypto";
+import { cors } from "@elysiajs/cors";
 import { Elysia, t } from "elysia";
 import { createShare, deleteShare, getShare, shareExists } from "./db";
 import { deleteShareData, getPresignedPutUrl, getShareData } from "./s3";
