@@ -18,8 +18,7 @@ export default function RootLayout({
           padding: 0,
           backgroundColor: "#0a0a0a",
           color: "#ededed",
-          fontFamily:
-            "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
         }}
       >
         {children}

@@ -1,12 +1,7 @@
-import { readdir, readFile } from "fs/promises";
-import { join } from "path";
-import { homedir } from "os";
-import type {
-  SessionInfo,
-  MessageInfo,
-  PartInfo,
-  MessageWithParts,
-} from "./types";
+import { readdir, readFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import type { MessageInfo, MessageWithParts, PartInfo, SessionInfo } from "./types";
 
 /**
  * OpenCode stores session data at:
@@ -26,12 +21,7 @@ export async function readSession(
   sessionID: string,
 ): Promise<SessionInfo | null> {
   try {
-    const filePath = join(
-      STORAGE_BASE,
-      "session",
-      projectID,
-      `${sessionID}.json`,
-    );
+    const filePath = join(STORAGE_BASE, "session", projectID, `${sessionID}.json`);
     const content = await readFile(filePath, "utf-8");
     return JSON.parse(content) as SessionInfo;
   } catch {
@@ -124,9 +114,7 @@ export async function readFullSession(
  * Find project ID for a session
  * Since sessions are stored under project directories, we need to search
  */
-export async function findProjectForSession(
-  sessionID: string,
-): Promise<string | null> {
+export async function findProjectForSession(sessionID: string): Promise<string | null> {
   try {
     const sessionDir = join(STORAGE_BASE, "session");
     const projectDirs = await readdir(sessionDir);

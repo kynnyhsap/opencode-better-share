@@ -46,11 +46,7 @@ const existsStmt = db.prepare<{ count: number }, { $shareId: string }>(
   "SELECT COUNT(*) as count FROM shares WHERE share_id = $shareId",
 );
 
-export function createShare(
-  shareId: string,
-  sessionId: string,
-  secret: string,
-): void {
+export function createShare(shareId: string, sessionId: string, secret: string): void {
   insertStmt.run({
     $shareId: shareId,
     $sessionId: sessionId,

@@ -199,6 +199,6 @@ async function showToast(
 // Default export
 export default BetterSharePlugin;
 
+export { ShareManager } from "./share";
 // Named exports for types
 export * from "./types";
-export { ShareManager } from "./share";

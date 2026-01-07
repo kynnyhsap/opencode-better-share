@@ -1,12 +1,5 @@
-import { nanoid } from "nanoid";
-import type {
-  ShareInfo,
-  ShareData,
-  PresignResponse,
-  SyncPresignResponse,
-  ApiError,
-} from "./types";
-import { readFullSession, findProjectForSession } from "./storage";
+import { findProjectForSession, readFullSession } from "./storage";
+import type { ApiError, PresignResponse, ShareData, ShareInfo, SyncPresignResponse } from "./types";
 
 // API base URL - can be configured via env or hardcoded
 const API_BASE_URL = process.env.BETTER_SHARE_API_URL || "https://opncd.com";
@@ -46,10 +39,7 @@ export class ShareManager {
    * 3. Upload to R2 via presigned URL
    * 4. Store share info in memory
    */
-  async createShare(
-    sessionID: string,
-    shareId: string,
-  ): Promise<{ url: string; error?: string }> {
+  async createShare(sessionID: string, shareId: string): Promise<{ url: string; error?: string }> {
     // Find project ID for this session
     const projectID = await findProjectForSession(sessionID);
 
@@ -82,10 +72,7 @@ export class ShareManager {
     };
 
     // Upload to R2
-    const uploadSuccess = await this.uploadToR2(
-      presignResponse.presignedUrl,
-      shareData,
-    );
+    const uploadSuccess = await this.uploadToR2(presignResponse.presignedUrl, shareData);
 
     if (!uploadSuccess) {
       return { url: "", error: "Failed to upload share data" };
@@ -136,10 +123,7 @@ export class ShareManager {
   /**
    * Actually perform the sync
    */
-  private async performSync(
-    sessionID: string,
-    shareInfo: ShareInfo,
-  ): Promise<void> {
+  private async performSync(sessionID: string, shareInfo: ShareInfo): Promise<void> {
     // Find project ID
     const projectID = await findProjectForSession(sessionID);
 
@@ -149,16 +133,10 @@ export class ShareManager {
     }
 
     // Get presigned URL for sync
-    const presignResponse = await this.requestSyncPresignedUrl(
-      shareInfo.shareId,
-      shareInfo.secret,
-    );
+    const presignResponse = await this.requestSyncPresignedUrl(shareInfo.shareId, shareInfo.secret);
 
     if ("error" in presignResponse) {
-      console.error(
-        "[better-share] Failed to get presigned URL:",
-        presignResponse.error,
-      );
+      console.error("[better-share] Failed to get presigned URL:", presignResponse.error);
       return;
     }
 
@@ -252,16 +230,13 @@ export class ShareManager {
     secret: string,
   ): Promise<SyncPresignResponse | ApiError> {
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/share/${shareId}/presign`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-Share-Secret": secret,
-          },
+      const response = await fetch(`${API_BASE_URL}/api/share/${shareId}/presign`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Share-Secret": secret,
         },
-      );
+      });
 
       const data = await response.json();
 
@@ -278,10 +253,7 @@ export class ShareManager {
   /**
    * Upload share data to R2 via presigned URL
    */
-  private async uploadToR2(
-    presignedUrl: string,
-    data: ShareData,
-  ): Promise<boolean> {
+  private async uploadToR2(presignedUrl: string, data: ShareData): Promise<boolean> {
     try {
       const response = await fetch(presignedUrl, {
         method: "PUT",

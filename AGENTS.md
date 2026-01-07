@@ -2,6 +2,24 @@
 
 This document provides guidelines for AI coding agents working on the OpenCode Better Share project.
 
+## Documentation Resources
+
+When writing code or debugging issues, consult these official docs:
+
+| Technology       | Documentation                     |
+| ---------------- | --------------------------------- |
+| Bun              | https://bun.sh/llms.txt           |
+| Elysia           | https://elysiajs.com/llms.txt     |
+| Next.js          | https://nextjs.org/docs           |
+| OpenCode Plugins | https://opencode.ai/docs/plugins/ |
+
+**Always check the relevant documentation before:**
+
+- Using Bun-specific APIs (SQLite, S3, etc.)
+- Writing Elysia routes or middleware
+- Implementing Next.js App Router patterns
+- Working with the OpenCode plugin SDK
+
 ## Project Overview
 
 A monorepo with two packages:
@@ -19,6 +37,9 @@ A monorepo with two packages:
 bun install          # Install all dependencies
 bun run dev          # Run web dev server
 bun run build        # Build all packages
+bun run format       # Format all files with Biome
+bun run lint         # Lint all files with Biome
+bun run check        # Format + lint + organize imports (recommended)
 ```
 
 ### Plugin Package (`packages/plugin`)
@@ -47,6 +68,17 @@ This project does not have automated tests. Validate changes by:
 
 ## Code Style Guidelines
 
+This project uses **Biome** for formatting and linting. Run `bun run check` before committing.
+
+### Import Order
+
+Biome auto-organizes imports. The expected order is:
+
+1. Type imports first (`import type { ... }`)
+2. External packages (`nanoid`, `@opencode-ai/plugin`, `elysia`)
+3. Node.js built-ins (`fs/promises`, `path`, `os`)
+4. Local/relative imports (`./share`, `./types`)
+
 ```typescript
 // Correct
 import type { Plugin, PluginInput } from "@opencode-ai/plugin";
@@ -56,6 +88,8 @@ import { ShareManager } from "./share";
 ```
 
 ### Formatting
+
+Configured in `biome.json`:
 
 - **Indentation:** 2 spaces
 - **Quotes:** Double quotes for strings
@@ -178,11 +212,11 @@ export class ShareManager {
 
 This project uses Bun's native APIs instead of npm packages:
 
-### SQLite (packages/web)
+### PostgreSQL (packages/web)
 
 ```typescript
-import { Database } from "bun:sqlite";
-const db = new Database(DATABASE_PATH, { create: true });
+import { Pool } from "pg";
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 ```
 
 ### S3/R2 Client (packages/web)
@@ -195,8 +229,6 @@ const client = new Bun.S3Client({
   bucket: process.env.S3_BUCKET,
 });
 ```
-
-Do NOT use `@aws-sdk/client-s3` or other AWS SDK packages.
 
 ## Project Structure
 
@@ -216,7 +248,7 @@ better-share/
 │       │   └── layout.tsx
 │       └── lib/
 │           ├── api.ts    # Elysia routes
-│           ├── db.ts     # SQLite database
+│           ├── db.ts     # PostgreSQL database
 │           └── s3.ts     # S3/R2 operations
 ```
 
@@ -235,7 +267,7 @@ S3_SECRET_ACCESS_KEY=xxx
 S3_BUCKET=opncd-shares
 S3_PUBLIC_URL=https://pub-xxx.r2.dev
 BASE_URL=https://opncd.com
-DATABASE_PATH=./data/shares.db
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
 ```
 
 ## Key Patterns

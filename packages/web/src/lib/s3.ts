@@ -12,10 +12,7 @@ const s3 = new S3Client({
 /**
  * Generate a presigned URL for uploading a share
  */
-export function getPresignedPutUrl(
-  shareId: string,
-  expiresIn: number = 3600,
-): string {
+export function getPresignedPutUrl(shareId: string, expiresIn: number = 3600): string {
   return s3.presign(`sessions/${shareId}.json`, {
     expiresIn,
     method: "PUT",

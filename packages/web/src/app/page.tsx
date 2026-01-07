@@ -21,9 +21,7 @@ export default function Home() {
         >
           opncd.com
         </h1>
-        <p style={{ color: "#888", fontSize: "1.125rem" }}>
-          Better sharing for OpenCode sessions
-        </p>
+        <p style={{ color: "#888", fontSize: "1.125rem" }}>Better sharing for OpenCode sessions</p>
       </header>
 
       <section style={{ marginBottom: "48px" }}>
@@ -38,8 +36,7 @@ export default function Home() {
           Installation
         </h2>
         <p style={{ color: "#888", marginBottom: "16px", lineHeight: 1.6 }}>
-          Add the plugin to your{" "}
-          <code style={codeInlineStyle}>opencode.json</code>:
+          Add the plugin to your <code style={codeInlineStyle}>opencode.json</code>:
         </p>
         <pre style={codeBlockStyle}>
           {`{
@@ -64,20 +61,16 @@ export default function Home() {
         </h2>
 
         <div style={{ marginBottom: "24px" }}>
-          <h3 style={{ fontSize: "1rem", color: "#aaa", marginBottom: "8px" }}>
-            Share a session
-          </h3>
+          <h3 style={{ fontSize: "1rem", color: "#aaa", marginBottom: "8px" }}>Share a session</h3>
           <pre style={codeBlockStyle}>/share</pre>
           <p style={{ color: "#888", marginTop: "8px", lineHeight: 1.6 }}>
-            Creates a shareable link to your current session. The link updates
-            in real-time as you continue working.
+            Creates a shareable link to your current session. The link updates in real-time as you
+            continue working.
           </p>
         </div>
 
         <div>
-          <h3 style={{ fontSize: "1rem", color: "#aaa", marginBottom: "8px" }}>
-            Remove a share
-          </h3>
+          <h3 style={{ fontSize: "1rem", color: "#aaa", marginBottom: "8px" }}>Remove a share</h3>
           <pre style={codeBlockStyle}>/unshare</pre>
           <p style={{ color: "#888", marginTop: "8px", lineHeight: 1.6 }}>
             Removes the share and deletes all shared data.
@@ -104,17 +97,15 @@ export default function Home() {
           }}
         >
           <li>
-            When you run <code style={codeInlineStyle}>/share</code>, your
-            session data is uploaded to our servers
+            When you run <code style={codeInlineStyle}>/share</code>, your session data is uploaded
+            to our servers
           </li>
           <li>
-            You get a unique URL like{" "}
-            <code style={codeInlineStyle}>opncd.com/share/abc123</code>
+            You get a unique URL like <code style={codeInlineStyle}>opncd.com/share/abc123</code>
           </li>
           <li>Changes sync automatically as you continue your conversation</li>
           <li>
-            <code style={codeInlineStyle}>/unshare</code> completely removes all
-            shared data
+            <code style={codeInlineStyle}>/unshare</code> completely removes all shared data
           </li>
         </ul>
       </section>

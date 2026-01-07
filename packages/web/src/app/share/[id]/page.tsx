@@ -1,6 +1,9 @@
-import { getShareData } from "@/lib/s3";
-import { getShare } from "@/lib/db";
 import { notFound } from "next/navigation";
+import { getShare } from "@/lib/db";
+import { getShareData } from "@/lib/s3";
+
+// Force dynamic rendering (no prerendering at build time)
+export const dynamic = "force-dynamic";
 
 interface SharePageProps {
   params: Promise<{ id: string }>;
