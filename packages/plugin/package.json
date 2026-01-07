@@ -1,0 +1,43 @@
+{
+  "name": "opencode-better-share",
+  "version": "0.1.0",
+  "description": "Better session sharing for OpenCode",
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/opencode-better-share.git"
+  },
+  "homepage": "https://opncd.com",
+  "bugs": {
+    "url": "https://github.com/yourusername/opencode-better-share/issues"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "prepublishOnly": "bun run build",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "share",
+    "session"
+  ],
+  "dependencies": {
+    "nanoid": "^5.0.9"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "^1.1.6",
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=1.0.0"
+  }
+}
