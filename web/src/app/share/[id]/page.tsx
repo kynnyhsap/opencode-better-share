@@ -13,7 +13,7 @@ export default async function SharePage({ params }: SharePageProps) {
   const { id } = await params;
 
   // Check if share exists in DB
-  const share = getShare(id);
+  const share = await getShare(id);
 
   if (!share) {
     notFound();
