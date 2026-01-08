@@ -1,13 +1,72 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, timingSafeEqual } from "node:crypto";
 import { cors } from "@elysiajs/cors";
 import { Elysia, t } from "elysia";
+import { rateLimit } from "elysia-rate-limit";
 import { createShare, deleteShare, getShare, shareExists } from "./db";
 import { deleteShareData, getPresignedPutUrl, getShareData } from "./s3";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
+/**
+ * Timing-safe secret comparison to prevent timing attacks
+ */
+function verifySecret(provided: string, stored: string): boolean {
+  const providedBuffer = Buffer.from(provided);
+  const storedBuffer = Buffer.from(stored);
+
+  if (providedBuffer.length !== storedBuffer.length) {
+    return false;
+  }
+
+  return timingSafeEqual(providedBuffer, storedBuffer);
+}
+
 export const app = new Elysia({ prefix: "/api" })
   .use(cors())
+
+  // General rate limit: 100 requests per minute per IP
+  // Skips /share/presign which has its own stricter limit
+  .use(
+    rateLimit({
+      duration: 60_000, // 1 minute
+      max: 100,
+      skip: (request) => {
+        const url = new URL(request.url);
+        // Skip general limit for share creation (has stricter limit below)
+        return url.pathname === "/api/share/presign";
+      },
+      errorResponse: new Response(
+        JSON.stringify({ error: "Too many requests", code: "RATE_LIMITED" }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    }),
+  )
+
+  // Stricter rate limit for share creation: 10 shares per hour per IP
+  .use(
+    rateLimit({
+      duration: 60 * 60 * 1000, // 1 hour
+      max: 10,
+      skip: (request) => {
+        const url = new URL(request.url);
+        // Only apply to share creation endpoint
+        return url.pathname !== "/api/share/presign";
+      },
+      errorResponse: new Response(
+        JSON.stringify({
+          error: "Share creation rate limit exceeded. Try again later.",
+          code: "SHARE_RATE_LIMITED",
+        }),
+        {
+          status: 429,
+          headers: { "Content-Type": "application/json" },
+        },
+      ),
+    }),
+  )
 
   .get("/health", () => ({ ok: true, timestamp: Date.now() }))
 
@@ -65,7 +124,7 @@ export const app = new Elysia({ prefix: "/api" })
       return { error: "Share not found" };
     }
 
-    if (share.secret !== secret) {
+    if (!verifySecret(secret, share.secret)) {
       set.status = 401;
       return { error: "Invalid secret" };
     }
@@ -113,7 +172,7 @@ export const app = new Elysia({ prefix: "/api" })
       return { error: "Share not found" };
     }
 
-    if (share.secret !== secret) {
+    if (!verifySecret(secret, share.secret)) {
       set.status = 401;
       return { error: "Invalid secret" };
     }
