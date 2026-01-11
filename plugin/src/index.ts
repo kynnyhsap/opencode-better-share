@@ -67,23 +67,6 @@ export const BetterSharePlugin: Plugin = async (ctx) => {
         }
       }
     },
-
-    /**
-     * Override config to inject custom commands
-     */
-    config: async (config) => {
-      config.command = {
-        ...config.command,
-        share: {
-          template: "",
-          description: "Share session (Better Share)",
-        },
-        unshare: {
-          template: "",
-          description: "Remove share link (Better Share)",
-        },
-      };
-    },
   };
 };
 
