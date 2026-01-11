@@ -10,6 +10,9 @@ import { ShareManager } from "./share";
 export const BetterSharePlugin: Plugin = async (ctx) => {
   const shareManager = new ShareManager();
 
+  // Load persisted shares from disk
+  await shareManager.initialize();
+
   return {
     /**
      * Event handler for all OpenCode events

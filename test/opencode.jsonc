@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  // // this will only work if you have implemented their API for sharing sessions.
+  // "enterprise": {
+  //   "url": "https://opencode-better-share.com"
+  // }
+}

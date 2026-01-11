@@ -11,12 +11,20 @@ const s3 = new S3Client({
 
 /**
  * Generate a presigned URL for uploading a share
+ * @param shareId - The share ID
+ * @param expiresIn - URL expiry in seconds (default 1 hour)
+ * @param maxSize - Maximum upload size in bytes (optional)
  */
-export function getPresignedPutUrl(shareId: string, expiresIn: number = 3600): string {
+export function getPresignedPutUrl(
+  shareId: string,
+  expiresIn: number = 3600,
+  maxSize?: number,
+): string {
   return s3.presign(`sessions/${shareId}.json`, {
     expiresIn,
     method: "PUT",
     type: "application/json",
+    ...(maxSize && { maxSize }),
   });
 }
 

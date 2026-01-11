@@ -1,11 +1,81 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { cors } from "@elysiajs/cors";
+import { Value } from "@sinclair/typebox/value";
 import { Elysia, t } from "elysia";
 import { rateLimit } from "elysia-rate-limit";
 import { createShare, deleteShare, getShare, shareExists } from "./db";
 import { deleteShareData, getPresignedPutUrl, getShareData } from "./s3";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
+
+// Max upload size: 25MB (largest observed session ~14MB, with headroom)
+const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
+
+// Share ID format: alphanumeric with underscores and hyphens
+const SHARE_ID_REGEX = /^[a-zA-Z0-9_-]+$/;
+
+/**
+ * Schema for validating share data structure
+ */
+const ShareDataSchema = t.Object({
+  shareId: t.String(),
+  sessionId: t.String(),
+  createdAt: t.Number(),
+  updatedAt: t.Number(),
+  session: t.Object({
+    id: t.String(),
+    title: t.String(),
+    projectID: t.String(),
+    directory: t.String(),
+    version: t.String(),
+    time: t.Object({
+      created: t.Number(),
+      updated: t.Number(),
+    }),
+    summary: t.Optional(
+      t.Object({
+        additions: t.Number(),
+        deletions: t.Number(),
+        files: t.Number(),
+      }),
+    ),
+  }),
+  messages: t.Array(
+    t.Object({
+      id: t.String(),
+      sessionID: t.String(),
+      role: t.Union([t.Literal("user"), t.Literal("assistant")]),
+      model: t.Optional(
+        t.Object({
+          providerID: t.String(),
+          modelID: t.String(),
+        }),
+      ),
+      time: t.Object({
+        created: t.Number(),
+        updated: t.Number(),
+      }),
+      parts: t.Array(
+        t.Object(
+          {
+            id: t.String(),
+            messageID: t.String(),
+            sessionID: t.String(),
+            type: t.String(),
+          },
+          { additionalProperties: true },
+        ),
+      ),
+    }),
+  ),
+});
+
+/**
+ * Validate share ID format to prevent path traversal
+ */
+function isValidShareId(shareId: string): boolean {
+  return SHARE_ID_REGEX.test(shareId) && shareId.length > 0 && shareId.length <= 100;
+}
 
 /**
  * Timing-safe secret comparison to prevent timing attacks
@@ -76,6 +146,15 @@ export const app = new Elysia({ prefix: "/api" })
     async ({ body, set }) => {
       const { shareId, sessionId } = body;
 
+      // Validate share ID format (prevent path traversal)
+      if (!isValidShareId(shareId)) {
+        set.status = 400;
+        return {
+          error: "Invalid share ID format",
+          code: "INVALID_SHARE_ID",
+        };
+      }
+
       // Check if share already exists
       if (await shareExists(shareId)) {
         set.status = 409;
@@ -91,8 +170,8 @@ export const app = new Elysia({ prefix: "/api" })
       // Store in DB
       await createShare(shareId, sessionId, secret);
 
-      // Generate presigned PUT URL (1 hour expiry)
-      const presignedUrl = await getPresignedPutUrl(shareId, 3600);
+      // Generate presigned PUT URL (1 hour expiry, 25MB max)
+      const presignedUrl = getPresignedPutUrl(shareId, 3600, MAX_UPLOAD_SIZE);
 
       return {
         presignedUrl,
@@ -112,6 +191,12 @@ export const app = new Elysia({ prefix: "/api" })
   .post("/share/:id/presign", async ({ params, headers, set }) => {
     const secret = headers["x-share-secret"];
 
+    // Validate share ID format
+    if (!isValidShareId(params.id)) {
+      set.status = 400;
+      return { error: "Invalid share ID format" };
+    }
+
     if (!secret) {
       set.status = 401;
       return { error: "Missing secret" };
@@ -129,14 +214,20 @@ export const app = new Elysia({ prefix: "/api" })
       return { error: "Invalid secret" };
     }
 
-    // Generate presigned PUT URL
-    const presignedUrl = await getPresignedPutUrl(params.id, 3600);
+    // Generate presigned PUT URL (1 hour expiry, 25MB max)
+    const presignedUrl = getPresignedPutUrl(params.id, 3600, MAX_UPLOAD_SIZE);
 
     return { presignedUrl };
   })
 
   // Get share data (public)
   .get("/share/:id", async ({ params, set }) => {
+    // Validate share ID format
+    if (!isValidShareId(params.id)) {
+      set.status = 400;
+      return { error: "Invalid share ID format" };
+    }
+
     // First check if share exists in our DB
     const share = await getShare(params.id);
 
@@ -153,11 +244,25 @@ export const app = new Elysia({ prefix: "/api" })
       return { error: "Share data not found" };
     }
 
+    // Validate share data structure
+    if (!Value.Check(ShareDataSchema, data)) {
+      const errors = [...Value.Errors(ShareDataSchema, data)];
+      console.error("[api] Invalid share data structure:", errors);
+      set.status = 500;
+      return { error: "Invalid share data structure" };
+    }
+
     return data;
   })
 
   // Delete share (requires secret)
   .delete("/share/:id", async ({ params, headers, set }) => {
+    // Validate share ID format
+    if (!isValidShareId(params.id)) {
+      set.status = 400;
+      return { error: "Invalid share ID format" };
+    }
+
     const secret = headers["x-share-secret"];
 
     if (!secret) {

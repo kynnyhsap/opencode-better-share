@@ -1,22 +1,70 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import { findProjectForSession, readFullSession } from "./storage";
 import type { ApiError, PresignResponse, ShareData, ShareInfo, SyncPresignResponse } from "./types";
 
 // API base URL - can be configured via env or hardcoded
 const API_BASE_URL = process.env.BETTER_SHARE_API_URL || "https://opncd.com";
 
+// Persistent storage path for share secrets
+const STORAGE_DIR = join(homedir(), ".local", "share", "opencode", "better-share");
+const SHARES_FILE = join(STORAGE_DIR, "shares.json");
+
 /**
  * ShareManager handles all share operations
  * - Creating shares
  * - Syncing updates
  * - Removing shares
+ * - Persisting share secrets to disk
  */
 export class ShareManager {
   // In-memory map of active shares: sessionID -> ShareInfo
   private activeShares = new Map<string, ShareInfo>();
 
   // Sync queue for debouncing
-  private syncQueue = new Map<string, NodeJS.Timeout>();
+  private syncQueue = new Map<string, Timer>();
   private syncDebounceMs = 1000;
+
+  // Track if we've loaded from disk
+  private initialized = false;
+
+  /**
+   * Load shares from persistent storage
+   * Call this before using the manager
+   */
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+
+    try {
+      const data = await readFile(SHARES_FILE, "utf-8");
+      const shares: ShareInfo[] = JSON.parse(data);
+
+      for (const share of shares) {
+        this.activeShares.set(share.sessionId, share);
+      }
+
+      console.log(`[better-share] Loaded ${shares.length} shares from disk`);
+    } catch {
+      // File doesn't exist or is invalid, start fresh
+      console.log("[better-share] No existing shares found, starting fresh");
+    }
+
+    this.initialized = true;
+  }
+
+  /**
+   * Persist shares to disk
+   */
+  private async persist(): Promise<void> {
+    try {
+      await mkdir(STORAGE_DIR, { recursive: true });
+      const shares = Array.from(this.activeShares.values());
+      await writeFile(SHARES_FILE, JSON.stringify(shares, null, 2));
+    } catch (err) {
+      console.error("[better-share] Failed to persist shares:", err);
+    }
+  }
 
   /**
    * Check if a session is currently shared
@@ -88,6 +136,9 @@ export class ShareManager {
     };
 
     this.activeShares.set(sessionID, shareInfo);
+
+    // Persist to disk
+    await this.persist();
 
     return { url: presignResponse.url };
   }
@@ -190,6 +241,9 @@ export class ShareManager {
       clearTimeout(pendingSync);
       this.syncQueue.delete(sessionID);
     }
+
+    // Persist to disk
+    await this.persist();
 
     return {};
   }

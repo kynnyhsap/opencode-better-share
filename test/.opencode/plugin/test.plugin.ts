@@ -9,7 +9,7 @@ function log(message: string, data: any) {
   fs.appendFileSync(path, content);
 }
 
-const BETTER_SHARE_BASE_URL = "https://opncd.com";
+const BETTER_SHARE_BASE_URL = process.env.BETTER_SHARE_BASE_URL || "https://opncd.com";
 
 export const TestPlugin: Plugin = async (ctx) => {
 
@@ -22,13 +22,7 @@ export const TestPlugin: Plugin = async (ctx) => {
   }
   
   return {
-    /**
-     * Event handler for all OpenCode events
-     */
     event: async ({ event }) => {
-
-      // log(`event: ${event.type}`, event);
-
       if (event.type === "session.updated") {
         const sessionID = event.properties.info.id;
         const shareId = sessionID.slice(-8);
