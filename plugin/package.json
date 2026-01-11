@@ -19,6 +19,7 @@
     "dist"
   ],
   "scripts": {
+    "dev": "bun run dev.ts",
     "build": "bun build src/index.ts --outdir dist --target node",
     "prepublishOnly": "bun run build",
     "typecheck": "tsc --noEmit"
