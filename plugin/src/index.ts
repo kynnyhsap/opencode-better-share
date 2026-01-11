@@ -13,58 +13,100 @@ export const BetterSharePlugin: Plugin = async (ctx) => {
   // Load persisted shares from disk
   await shareManager.initialize();
 
+  /**
+   * Get current clipboard text (macOS only for now)
+   * TODO: Support other platforms
+   */
+  async function getCurrentClipboardText(): Promise<string> {
+    const result = await ctx.$`pbpaste`.text();
+    return result.trim();
+  }
+
+  /**
+   * Set clipboard text (macOS only for now)
+   * TODO: Support other platforms
+   */
+  async function setClipboardText(text: string): Promise<void> {
+    await ctx.$`printf '%s' ${text} | pbcopy`.quiet();
+  }
+
+  /**
+   * Override clipboard with our share URL after OpenCode copies its URL
+   * OpenCode automatically copies its share URL to clipboard, but we want ours
+   */
+  async function overrideClipboardWithShareUrl(betterShareUrl: string): Promise<void> {
+    const timeoutMs = 1000;
+    const startedAt = Date.now();
+
+    let currentClipboardText = await getCurrentClipboardText();
+
+    while (currentClipboardText !== betterShareUrl && Date.now() - startedAt < timeoutMs) {
+      await setClipboardText(betterShareUrl);
+      currentClipboardText = await getCurrentClipboardText();
+    }
+  }
+
   return {
     /**
      * Event handler for all OpenCode events
      */
     event: async ({ event }) => {
       switch (event.type) {
-        case "command.executed": {
-          const props = event.properties;
+        // case "command.executed": {
+        //   const props = event.properties;
 
-          if (props.name === "share") {
-            await handleShare(ctx, shareManager, props.sessionID);
-          } else if (props.name === "unshare") {
-            await handleUnshare(ctx, shareManager, props.sessionID);
-          }
-          break;
-        }
+        //   if (props.name === "share") {
+        //     await handleShare(ctx, shareManager, props.sessionID);
+        //   } else if (props.name === "unshare") {
+        //     await handleUnshare(ctx, shareManager, props.sessionID);
+        //   }
+        //   break;
+        // }
 
         case "session.updated": {
-          // Queue sync if this session is shared
           const sessionInfo = event.properties.info;
-          if (shareManager.isShared(sessionInfo.id)) {
-            shareManager.queueSync(sessionInfo.id);
+
+          // Override clipboard when OpenCode sets a share URL
+          if (sessionInfo.share?.url) {
+            const shareInfo = shareManager.getShareInfo(sessionInfo.id);
+            if (shareInfo) {
+              await overrideClipboardWithShareUrl(shareInfo.url);
+            }
           }
+
+          // // Queue sync if this session is shared
+          // if (shareManager.isShared(sessionInfo.id)) {
+          //   shareManager.queueSync(sessionInfo.id);
+          // }
           break;
         }
 
-        case "message.updated": {
-          // Queue sync when messages change
-          const messageInfo = event.properties.info;
-          if (shareManager.isShared(messageInfo.sessionID)) {
-            shareManager.queueSync(messageInfo.sessionID);
-          }
-          break;
-        }
+        // case "message.updated": {
+        //   // Queue sync when messages change
+        //   const messageInfo = event.properties.info;
+        //   if (shareManager.isShared(messageInfo.sessionID)) {
+        //     shareManager.queueSync(messageInfo.sessionID);
+        //   }
+        //   break;
+        // }
 
-        case "message.part.updated": {
-          // Queue sync when parts change (streaming)
-          const partInfo = event.properties.part;
-          if (shareManager.isShared(partInfo.sessionID)) {
-            shareManager.queueSync(partInfo.sessionID);
-          }
-          break;
-        }
+        // case "message.part.updated": {
+        //   // Queue sync when parts change (streaming)
+        //   const partInfo = event.properties.part;
+        //   if (shareManager.isShared(partInfo.sessionID)) {
+        //     shareManager.queueSync(partInfo.sessionID);
+        //   }
+        //   break;
+        // }
 
-        case "session.deleted": {
-          // Auto-unshare when session is deleted
-          const sessionInfo = event.properties.info;
-          if (shareManager.isShared(sessionInfo.id)) {
-            await shareManager.removeShare(sessionInfo.id);
-          }
-          break;
-        }
+        // case "session.deleted": {
+        //   // Auto-unshare when session is deleted
+        //   const sessionInfo = event.properties.info;
+        //   if (shareManager.isShared(sessionInfo.id)) {
+        //     await shareManager.removeShare(sessionInfo.id);
+        //   }
+        //   break;
+        // }
       }
     },
   };
