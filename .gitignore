@@ -36,3 +36,6 @@ coverage/
 
 # Misc
 *.tgz
+
+test/.opencode
+test/opencode.json*
