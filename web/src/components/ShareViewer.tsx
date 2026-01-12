@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePersistedState } from "@/lib/hooks";
 import { calculateContextPercentage, getModelInfo, type ModelInfo } from "@/lib/models";
+import {
+  type ColorScheme,
+  DEFAULT_THEME_ID,
+  resolveTheme,
+  themeToStyles,
+  THEMES,
+  type ThemeStyles,
+} from "@/lib/theme";
 import type { AssistantMessage, ShareData } from "@/lib/types";
 import { Header } from "./Header";
 import { MessageList } from "./MessageList";
-
-export type Theme = "dark" | "light";
 
 // Font options using CSS variables from next/font
 export const FONTS = [
@@ -16,6 +23,7 @@ export const FONTS = [
 ] as const;
 
 export type FontOption = (typeof FONTS)[number];
+export type { ThemeStyles };
 
 interface ShareViewerProps {
   data: ShareData;
@@ -26,9 +34,26 @@ function isAssistantMessage(info: ShareData["messages"][0]["info"]): info is Ass
 }
 
 export function ShareViewer({ data }: ShareViewerProps) {
-  const [theme, setTheme] = useState<Theme>("dark");
-  const [font, setFont] = useState<FontOption>(FONTS[0]);
+  // Persisted preferences
+  const [themeId, setThemeId] = usePersistedState("theme", DEFAULT_THEME_ID);
+  const [colorScheme, setColorScheme] = usePersistedState<ColorScheme>("colorScheme", "dark");
+  const [fontIndex, setFontIndex] = usePersistedState("fontIndex", 0);
+
+  // Derive font from index (for serialization)
+  const font = FONTS[fontIndex] || FONTS[0];
+  const setFont = (f: FontOption) => {
+    const idx = FONTS.findIndex((opt) => opt.value === f.value);
+    setFontIndex(idx >= 0 ? idx : 0);
+  };
+
   const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
+
+  // Resolve the current theme
+  const themeStyles = useMemo(() => {
+    const theme = THEMES[themeId] || THEMES[DEFAULT_THEME_ID];
+    const resolved = resolveTheme(theme, colorScheme);
+    return themeToStyles(resolved);
+  }, [themeId, colorScheme]);
 
   // Update document title
   useEffect(() => {
@@ -78,27 +103,6 @@ export function ShareViewer({ data }: ShareViewerProps) {
     ? calculateContextPercentage(contextTokens, modelInfo.limit.context)
     : null;
 
-  const themeStyles =
-    theme === "dark"
-      ? {
-          bg: "#0a0a0a",
-          bgSecondary: "#111",
-          text: "#ededed",
-          textMuted: "#888",
-          border: "#333",
-          userBg: "#1a1a2e",
-          assistantBg: "#111",
-        }
-      : {
-          bg: "#ffffff",
-          bgSecondary: "#f5f5f5",
-          text: "#1a1a1a",
-          textMuted: "#666",
-          border: "#e0e0e0",
-          userBg: "#f0f4ff",
-          assistantBg: "#fafafa",
-        };
-
   return (
     <div
       style={{
@@ -113,8 +117,10 @@ export function ShareViewer({ data }: ShareViewerProps) {
         sessionId={data.sessionId}
         version={data.session.version}
         model={model}
-        theme={theme}
-        onThemeChange={setTheme}
+        themeId={themeId}
+        onThemeChange={setThemeId}
+        colorScheme={colorScheme}
+        onColorSchemeChange={setColorScheme}
         font={font}
         onFontChange={setFont}
         themeStyles={themeStyles}
@@ -124,7 +130,7 @@ export function ShareViewer({ data }: ShareViewerProps) {
         {/* Session title with stats - like OpenCode */}
         <div
           style={{
-            borderLeft: "3px solid #d97706",
+            borderLeft: `3px solid ${themeStyles.markdownLink}`,
             paddingLeft: "16px",
             marginBottom: "24px",
             display: "flex",
@@ -158,7 +164,7 @@ export function ShareViewer({ data }: ShareViewerProps) {
           </div>
         </div>
 
-        <MessageList messages={data.messages} theme={theme} themeStyles={themeStyles} />
+        <MessageList messages={data.messages} colorScheme={colorScheme} themeStyles={themeStyles} />
       </main>
     </div>
   );

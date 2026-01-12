@@ -1,27 +1,34 @@
 "use client";
 
 import { Streamdown } from "streamdown";
-import type { Theme } from "./ShareViewer";
+import type { ColorScheme } from "@/lib/theme";
+import type { ThemeStyles } from "./ShareViewer";
 
 interface MarkdownContentProps {
   content: string;
-  theme: Theme;
+  colorScheme: ColorScheme;
+  themeStyles: ThemeStyles;
 }
 
-export function MarkdownContent({ content, theme }: MarkdownContentProps) {
+export function MarkdownContent({ content, colorScheme, themeStyles }: MarkdownContentProps) {
+  const isDark = colorScheme === "dark";
+
   return (
     <div
-      className={theme === "dark" ? "dark" : ""}
+      className={isDark ? "dark" : ""}
       style={{
         fontSize: "0.875rem",
         lineHeight: 1.7,
+        // Apply theme colors via CSS custom properties
+        // @ts-expect-error - CSS custom properties
+        "--md-heading": themeStyles.markdownHeading,
+        "--md-link": themeStyles.markdownLink,
+        "--md-code": themeStyles.markdownCode,
       }}
     >
       <Streamdown
         mode="static"
-        shikiTheme={
-          theme === "dark" ? ["github-dark", "github-light"] : ["github-light", "github-dark"]
-        }
+        shikiTheme={isDark ? ["github-dark", "github-light"] : ["github-light", "github-dark"]}
         controls={false}
       >
         {content}

@@ -1,22 +1,15 @@
 "use client";
 
+import type { ColorScheme } from "@/lib/theme";
 import type { AssistantMessage, MessageWithParts, Part, TextPart, ToolPart } from "@/lib/types";
 import { MarkdownContent } from "./MarkdownContent";
-import type { Theme } from "./ShareViewer";
+import type { ThemeStyles } from "./ShareViewer";
 import { ToolCall } from "./ToolCall";
 
 interface MessageProps {
   message: MessageWithParts;
-  theme: Theme;
-  themeStyles: {
-    bg: string;
-    bgSecondary: string;
-    text: string;
-    textMuted: string;
-    border: string;
-    userBg: string;
-    assistantBg: string;
-  };
+  colorScheme: ColorScheme;
+  themeStyles: ThemeStyles;
 }
 
 function isTextPart(part: Part): part is TextPart {
@@ -37,7 +30,7 @@ function formatDuration(startMs: number, endMs?: number): string {
   return `${durationSec.toFixed(1)}s`;
 }
 
-export function Message({ message, theme, themeStyles }: MessageProps) {
+export function Message({ message, colorScheme, themeStyles }: MessageProps) {
   const { info, parts } = message;
   const isUser = info.role === "user";
 
@@ -58,14 +51,18 @@ export function Message({ message, theme, themeStyles }: MessageProps) {
   return (
     <div
       style={{
-        borderLeft: isUser ? "3px solid #d97706" : "none",
+        borderLeft: isUser ? `3px solid ${themeStyles.markdownLink}` : "none",
         paddingLeft: isUser ? "16px" : "0",
       }}
     >
       {/* Text content */}
       {textContent && (
         <div style={{ marginBottom: toolParts.length > 0 ? "16px" : 0 }}>
-          <MarkdownContent content={textContent} theme={theme} />
+          <MarkdownContent
+            content={textContent}
+            colorScheme={colorScheme}
+            themeStyles={themeStyles}
+          />
         </div>
       )}
 
@@ -104,18 +101,18 @@ export function Message({ message, theme, themeStyles }: MessageProps) {
                     width: "8px",
                     height: "8px",
                     borderRadius: "2px",
-                    backgroundColor: "#d97706",
+                    backgroundColor: themeStyles.markdownLink,
                   }}
                 />
                 {agent.charAt(0).toUpperCase() + agent.slice(1)}
               </span>
-              <span style={{ color: themeStyles.border }}>·</span>
+              <span style={{ color: themeStyles.borderWeak }}>·</span>
             </>
           )}
           {modelId && (
             <>
               <span>{modelId}</span>
-              {duration && <span style={{ color: themeStyles.border }}>·</span>}
+              {duration && <span style={{ color: themeStyles.borderWeak }}>·</span>}
             </>
           )}
           {duration && <span>{duration}</span>}

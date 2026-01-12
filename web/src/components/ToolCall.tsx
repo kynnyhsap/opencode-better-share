@@ -2,16 +2,11 @@
 
 import { useState } from "react";
 import type { ToolPart } from "@/lib/types";
+import type { ThemeStyles } from "./ShareViewer";
 
 interface ToolCallProps {
   tool: ToolPart;
-  themeStyles: {
-    bg: string;
-    bgSecondary: string;
-    text: string;
-    textMuted: string;
-    border: string;
-  };
+  themeStyles: ThemeStyles;
 }
 
 export function ToolCall({ tool, themeStyles }: ToolCallProps) {
@@ -24,7 +19,12 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
   const hasOutput = "output" in state;
   const hasError = "error" in state;
 
-  const statusColor = isError ? "#ef4444" : isCompleted ? "#22c55e" : "#eab308";
+  // Use theme colors for status
+  const statusColor = isError
+    ? themeStyles.syntaxString // error-ish color
+    : isCompleted
+      ? themeStyles.markdownCode // success green
+      : themeStyles.markdownHeading; // warning yellow/orange
 
   return (
     <div
@@ -142,7 +142,7 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
                 style={{
                   fontSize: "0.6875rem",
                   fontWeight: 600,
-                  color: "#ef4444",
+                  color: themeStyles.syntaxString,
                   marginBottom: "4px",
                   textTransform: "uppercase",
                 }}
@@ -157,7 +157,7 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
                   backgroundColor: themeStyles.bg,
                   overflow: "auto",
                   fontSize: "0.75rem",
-                  color: "#ef4444",
+                  color: themeStyles.syntaxString,
                 }}
               >
                 {state.error}

@@ -1,28 +1,26 @@
 "use client";
 
+import type { ColorScheme } from "@/lib/theme";
 import type { MessageWithParts } from "@/lib/types";
 import { Message } from "./Message";
-import type { Theme } from "./ShareViewer";
+import type { ThemeStyles } from "./ShareViewer";
 
 interface MessageListProps {
   messages: MessageWithParts[];
-  theme: Theme;
-  themeStyles: {
-    bg: string;
-    bgSecondary: string;
-    text: string;
-    textMuted: string;
-    border: string;
-    userBg: string;
-    assistantBg: string;
-  };
+  colorScheme: ColorScheme;
+  themeStyles: ThemeStyles;
 }
 
-export function MessageList({ messages, theme, themeStyles }: MessageListProps) {
+export function MessageList({ messages, colorScheme, themeStyles }: MessageListProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
       {messages.map((message) => (
-        <Message key={message.info.id} message={message} theme={theme} themeStyles={themeStyles} />
+        <Message
+          key={message.info.id}
+          message={message}
+          colorScheme={colorScheme}
+          themeStyles={themeStyles}
+        />
       ))}
     </div>
   );

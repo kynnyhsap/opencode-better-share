@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FONTS, type FontOption, type Theme } from "./ShareViewer";
+import { type ColorScheme, THEME_LIST } from "@/lib/theme";
+import { FONTS, type FontOption, type ThemeStyles } from "./ShareViewer";
 
 interface HeaderProps {
   shareId: string;
@@ -11,17 +12,13 @@ interface HeaderProps {
     providerID: string;
     modelID: string;
   };
-  theme: Theme;
-  onThemeChange: (theme: Theme) => void;
+  themeId: string;
+  onThemeChange: (themeId: string) => void;
+  colorScheme: ColorScheme;
+  onColorSchemeChange: (scheme: ColorScheme) => void;
   font: FontOption;
   onFontChange: (font: FontOption) => void;
-  themeStyles: {
-    bg: string;
-    bgSecondary: string;
-    text: string;
-    textMuted: string;
-    border: string;
-  };
+  themeStyles: ThemeStyles;
 }
 
 function CopyButton({ text, label }: { text: string; label: string }) {
@@ -59,8 +56,10 @@ export function Header({
   sessionId,
   version,
   model,
-  theme,
+  themeId,
   onThemeChange,
+  colorScheme,
+  onColorSchemeChange,
   font,
   onFontChange,
   themeStyles,
@@ -97,17 +96,39 @@ export function Header({
             >
               opncd.com
             </a>
-            <span style={{ color: themeStyles.border, margin: "0 8px" }}>/</span>
-            <span style={{ color: themeStyles.border }}>share</span>
-            <span style={{ color: themeStyles.border, margin: "0 8px" }}>/</span>
+            <span style={{ color: themeStyles.borderWeak, margin: "0 8px" }}>/</span>
+            <span style={{ color: themeStyles.borderWeak }}>share</span>
+            <span style={{ color: themeStyles.borderWeak, margin: "0 8px" }}>/</span>
             <span style={{ color: themeStyles.text }}>{shareId}</span>
           </div>
 
           {/* Selectors */}
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            {/* Theme selector */}
             <select
-              value={theme}
-              onChange={(e) => onThemeChange(e.target.value as Theme)}
+              value={themeId}
+              onChange={(e) => onThemeChange(e.target.value)}
+              style={{
+                backgroundColor: themeStyles.bg,
+                color: themeStyles.text,
+                border: `1px solid ${themeStyles.border}`,
+                borderRadius: "4px",
+                padding: "4px 8px",
+                fontSize: "0.75rem",
+                cursor: "pointer",
+              }}
+            >
+              {THEME_LIST.map((theme) => (
+                <option key={theme.id} value={theme.id}>
+                  {theme.name}
+                </option>
+              ))}
+            </select>
+
+            {/* Color scheme selector */}
+            <select
+              value={colorScheme}
+              onChange={(e) => onColorSchemeChange(e.target.value as ColorScheme)}
               style={{
                 backgroundColor: themeStyles.bg,
                 color: themeStyles.text,
@@ -122,6 +143,7 @@ export function Header({
               <option value="light">Light</option>
             </select>
 
+            {/* Font selector */}
             <select
               value={font.name}
               onChange={(e) => {
