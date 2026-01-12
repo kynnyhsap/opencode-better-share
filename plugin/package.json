@@ -1,29 +1,27 @@
 {
   "name": "opencode-better-share",
   "version": "0.1.0",
-  "description": "Better session sharing for OpenCode",
   "author": "Andrew Pashynnyk",
-  "license": "MIT",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": ["dist"],
-  "scripts": {
-    "dev": "bun run dev.ts",
-    "build": "bun build src/index.ts --outdir dist --target bun",
-    "prepublishOnly": "bun run build",
-    "typecheck": "tsc --noEmit",
-    "format": "biome check --write .",
-    "lint": "biome lint ."
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kynnyhsap/opencode-better-share.git"
   },
-  "homepage": "https://opncd.com",
+  "main": "dist/index.js",
+  "dependencies": {
+    "@opencode-ai/plugin": "1.1.14",
+    "@opencode-ai/sdk": "1.1.14",
+    "clipboardy": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.1.14",
+    "typescript": "^5.7.2"
+  },
   "bugs": {
     "url": "https://github.com/kynnyhsap/opencode-better-share/issues"
   },
+  "description": "Better session sharing for OpenCode",
+  "files": ["dist"],
+  "homepage": "https://opncd.com",
   "keywords": [
     "opencode",
     "opencode-plugin",
@@ -32,16 +30,15 @@
     "session",
     "better-share"
   ],
-  "dependencies": {
-    "@opencode-ai/sdk": "^1.1.14",
-    "clipboardy": "^5.0.2"
+  "license": "MIT",
+  "scripts": {
+    "dev": "bun run dev.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "prepublishOnly": "bun run build",
+    "typecheck": "tsc --noEmit",
+    "format": "biome check --write .",
+    "lint": "biome lint ."
   },
-  "devDependencies": {
-    "@opencode-ai/plugin": "^1.1.6",
-    "@types/bun": "^1.1.14",
-    "typescript": "^5.7.2"
-  },
-  "peerDependencies": {
-    "@opencode-ai/plugin": ">=1.0.0"
-  }
+  "type": "module",
+  "types": "dist/index.d.ts"
 }
