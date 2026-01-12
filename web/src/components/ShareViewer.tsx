@@ -130,12 +130,17 @@ export function ShareViewer({ data }: ShareViewerProps) {
         {/* Session title with stats - like OpenCode */}
         <div
           style={{
-            borderLeft: `3px solid ${themeStyles.markdownLink}`,
+            backgroundColor: themeStyles.bgSecondary,
+            borderLeft: `3px solid ${themeStyles.primary}`,
             paddingLeft: "16px",
+            paddingTop: "12px",
+            paddingBottom: "12px",
+            paddingRight: "12px",
             marginBottom: "24px",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            borderRadius: "0 4px 4px 0",
           }}
         >
           <h1

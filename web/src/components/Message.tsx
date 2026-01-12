@@ -51,8 +51,15 @@ export function Message({ message, colorScheme, themeStyles }: MessageProps) {
   return (
     <div
       style={{
-        borderLeft: isUser ? `3px solid ${themeStyles.markdownLink}` : "none",
+        // User messages: backgroundPanel + colored border (like TUI)
+        // Assistant messages: no background wrapper
+        backgroundColor: isUser ? themeStyles.bgSecondary : "transparent",
+        borderLeft: isUser ? `3px solid ${themeStyles.primary}` : "none",
         paddingLeft: isUser ? "16px" : "0",
+        paddingTop: isUser ? "12px" : "0",
+        paddingBottom: isUser ? "12px" : "0",
+        paddingRight: isUser ? "12px" : "0",
+        borderRadius: isUser ? "0 4px 4px 0" : "0",
       }}
     >
       {/* Text content */}
