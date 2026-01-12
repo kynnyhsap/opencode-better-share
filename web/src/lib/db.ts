@@ -1,14 +1,12 @@
 import { sql } from "bun";
 
 export interface Share {
-  id: number;
-
   session_id: string;
   share_id: string;
 
   secret: string;
 
-  created_at: number;
+  created_at: string;
 }
 
 export async function createShare(
@@ -16,16 +14,20 @@ export async function createShare(
   sessionId: string,
   secret: string,
 ): Promise<void> {
-  await sql`
-    INSERT INTO shares (share_id, session_id, secret, created_at)
-    VALUES (${shareId}, ${sessionId}, ${secret}, ${Date.now()})
+  const [result] = await sql`
+    INSERT INTO shares (share_id, session_id, secret)
+    VALUES (${shareId}, ${sessionId}, ${secret})
+    RETURNING *
   `;
+
+  return result;
 }
 
 export async function getShare(shareId: string): Promise<Share | null> {
   const results = await sql`
     SELECT * FROM shares WHERE share_id = ${shareId}
   `;
+
   return (results[0] as Share) ?? null;
 }
 
