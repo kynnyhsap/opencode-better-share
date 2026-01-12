@@ -8,11 +8,15 @@ import { deleteShareData, getPresignedPutUrl, getShareData } from "./s3";
 
 const BASE_URL = process.env.BASE_URL || "http://localhost:3000";
 
-// Max upload size: 25MB (largest observed session ~14MB, with headroom)
-const MAX_UPLOAD_SIZE = 25 * 1024 * 1024;
+const MB = 1024 * 1024;
+const MAX_UPLOAD_SIZE = 100 * MB;
 
 // Share ID format: alphanumeric with underscores and hyphens
 const SHARE_ID_REGEX = /^[a-zA-Z0-9_-]+$/;
+
+function generateSecret(): string {
+  return randomBytes(24).toString("base64url");
+}
 
 /**
  * Schema for validating share data structure
@@ -164,10 +168,8 @@ export const app = new Elysia({ prefix: "/api" })
         };
       }
 
-      // Generate secret
-      const secret = randomBytes(24).toString("base64url");
+      const secret = generateSecret();
 
-      // Store in DB
       await createShare(shareId, sessionId, secret);
 
       // Generate presigned PUT URL (1 hour expiry, 25MB max)
