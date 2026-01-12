@@ -14,6 +14,35 @@ const MAX_UPLOAD_SIZE = 100 * MB;
 // Share ID format: alphanumeric with underscores and hyphens
 const SHARE_ID_REGEX = /^[a-zA-Z0-9_-]+$/;
 
+// Cache for models.dev data (1 hour TTL)
+type ModelsDevData = Record<string, { models: Record<string, { limit?: { context?: number } }> }>;
+let modelsDevCache: { data: ModelsDevData; expiresAt: number } | null = null;
+const MODELS_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+async function fetchModelsDevData(): Promise<ModelsDevData | null> {
+  // Return cached data if still valid
+  if (modelsDevCache && Date.now() < modelsDevCache.expiresAt) {
+    return modelsDevCache.data;
+  }
+
+  try {
+    const response = await fetch("https://models.dev/api.json");
+    if (!response.ok) {
+      return modelsDevCache?.data ?? null; // Return stale cache on error
+    }
+
+    const data = (await response.json()) as ModelsDevData;
+    modelsDevCache = {
+      data,
+      expiresAt: Date.now() + MODELS_CACHE_TTL,
+    };
+    return data;
+  } catch (error) {
+    console.error("[api] Failed to fetch models.dev:", error);
+    return modelsDevCache?.data ?? null; // Return stale cache on error
+  }
+}
+
 function generateSecret(): string {
   return randomBytes(24).toString("base64url");
 }
@@ -143,6 +172,37 @@ export const app = new Elysia({ prefix: "/api" })
   )
 
   .get("/health", () => ({ ok: true, timestamp: Date.now() }))
+
+  // Proxy models.dev API to avoid CORS issues (cached for 1 hour)
+  .get("/models/:provider/:model", async ({ params, set }) => {
+    const { provider, model } = params;
+
+    try {
+      const data = await fetchModelsDevData();
+      if (!data) {
+        set.status = 502;
+        return { error: "Failed to fetch models" };
+      }
+
+      const providerData = data[provider];
+      if (!providerData) {
+        set.status = 404;
+        return { error: "Provider not found" };
+      }
+
+      const modelData = providerData.models[model];
+      if (!modelData) {
+        set.status = 404;
+        return { error: "Model not found" };
+      }
+
+      return modelData;
+    } catch (error) {
+      console.error("[api] Failed to fetch models.dev:", error);
+      set.status = 502;
+      return { error: "Failed to fetch models" };
+    }
+  })
 
   // Create share - generate secret & presigned URL
   .post(

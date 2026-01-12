@@ -27,6 +27,7 @@
       "version": "0.1.0",
       "dependencies": {
         "@elysiajs/cors": "^1.1.1",
+        "@opencode-ai/sdk": "1.1.14",
         "@sinclair/typebox": "^0.34.47",
         "@tailwindcss/postcss": "^4.1.18",
         "elysia": "^1.2.9",

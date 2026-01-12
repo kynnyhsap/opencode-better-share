@@ -18,9 +18,11 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
   const [expanded, setExpanded] = useState(false);
 
   const { state } = tool;
-  const title = state.title || tool.tool;
+  const title = "title" in state ? state.title : tool.tool;
   const isCompleted = state.status === "completed";
   const isError = state.status === "error";
+  const hasOutput = "output" in state;
+  const hasError = "error" in state;
 
   const statusColor = isError ? "#ef4444" : isCompleted ? "#22c55e" : "#eab308";
 
@@ -104,7 +106,7 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
           )}
 
           {/* Output */}
-          {state.output && (
+          {hasOutput && "output" in state && (
             <div>
               <div
                 style={{
@@ -134,7 +136,7 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
           )}
 
           {/* Error */}
-          {state.error && (
+          {hasError && "error" in state && (
             <div>
               <div
                 style={{

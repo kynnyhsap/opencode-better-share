@@ -1,122 +1,46 @@
 /**
  * Types for share data
+ * Re-exports from @opencode-ai/sdk and custom share types
  */
 
-export interface ShareSession {
-  id: string;
-  title: string;
-  projectID: string;
-  directory: string;
-  version: string;
-  time: {
-    created: number;
-    updated: number;
-  };
-  summary?: {
-    additions: number;
-    deletions: number;
-    files: number;
-  };
-}
+// Re-export SDK types
+export type {
+  AssistantMessage,
+  FilePart,
+  Message,
+  Part,
+  ReasoningPart,
+  Session,
+  StepFinishPart,
+  StepStartPart,
+  TextPart,
+  ToolPart,
+  ToolState,
+  ToolStateCompleted,
+  ToolStateError,
+  ToolStatePending,
+  ToolStateRunning,
+  UserMessage,
+} from "@opencode-ai/sdk/client";
 
-export interface TextPart {
-  id: string;
-  messageID: string;
-  sessionID: string;
-  type: "text";
-  text: string;
-}
+import type { Message, Part, Session } from "@opencode-ai/sdk/client";
 
-export interface ToolPart {
-  id: string;
-  messageID: string;
-  sessionID: string;
-  type: "tool";
-  tool: string;
-  callID: string;
-  state: {
-    status: "pending" | "running" | "completed" | "error";
-    input?: Record<string, unknown>;
-    output?: string;
-    title?: string;
-    error?: string;
-    time?: {
-      start: number;
-      end?: number;
-    };
-  };
-}
-
-export interface FilePart {
-  id: string;
-  messageID: string;
-  sessionID: string;
-  type: "file";
-  mime: string;
-  filename?: string;
-  url: string;
-}
-
-export interface ReasoningPart {
-  id: string;
-  messageID: string;
-  sessionID: string;
-  type: "reasoning";
-  text: string;
-}
-
-export type Part =
-  | TextPart
-  | ToolPart
-  | FilePart
-  | ReasoningPart
-  | {
-      id: string;
-      messageID: string;
-      sessionID: string;
-      type: string;
-      [key: string]: unknown;
-    };
-
-export interface MessageInfo {
-  id: string;
-  sessionID: string;
-  role: "user" | "assistant";
-  model?: {
-    providerID: string;
-    modelID: string;
-  };
-  // Assistant-specific fields
-  modelID?: string;
-  providerID?: string;
-  agent?: string;
-  mode?: string;
-  tokens?: {
-    input: number;
-    output: number;
-    reasoning: number;
-    cache: {
-      read: number;
-      write: number;
-    };
-  };
-  time: {
-    created: number;
-    updated?: number;
-    completed?: number;
-  };
-}
-
+/**
+ * Message with its parts (as returned by SDK's session.messages())
+ */
 export interface MessageWithParts {
-  info: MessageInfo;
+  info: Message;
   parts: Part[];
 }
 
+/**
+ * Share data structure stored in R2
+ */
 export interface ShareData {
   shareId: string;
   sessionId: string;
   createdAt: number;
   updatedAt: number;
-  session: ShareSession;
+  session: Session;
   messages: MessageWithParts[];
 }

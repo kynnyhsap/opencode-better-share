@@ -1,6 +1,6 @@
 "use client";
 
-import type { MessageWithParts, Part, TextPart, ToolPart } from "@/lib/types";
+import type { AssistantMessage, MessageWithParts, Part, TextPart, ToolPart } from "@/lib/types";
 import { MarkdownContent } from "./MarkdownContent";
 import type { Theme } from "./ShareViewer";
 import { ToolCall } from "./ToolCall";
@@ -27,6 +27,10 @@ function isToolPart(part: Part): part is ToolPart {
   return part.type === "tool";
 }
 
+function isAssistantMessage(msg: MessageWithParts["info"]): msg is AssistantMessage {
+  return msg.role === "assistant";
+}
+
 function formatDuration(startMs: number, endMs?: number): string {
   if (!endMs) return "";
   const durationSec = (endMs - startMs) / 1000;
@@ -43,13 +47,13 @@ export function Message({ message, theme, themeStyles }: MessageProps) {
 
   const textContent = textParts.map((p) => p.text).join("\n");
 
-  // Get duration for assistant messages
-  const duration =
-    !isUser && info.time.completed ? formatDuration(info.time.created, info.time.completed) : "";
-
-  // Get agent and model for assistant messages
-  const agent = info.agent || info.mode;
-  const modelId = info.modelID || info.model?.modelID;
+  // Get assistant-specific fields
+  const assistantInfo = isAssistantMessage(info) ? info : null;
+  const duration = assistantInfo?.time.completed
+    ? formatDuration(assistantInfo.time.created, assistantInfo.time.completed)
+    : "";
+  const agent = assistantInfo?.mode;
+  const modelId = assistantInfo?.modelID;
 
   return (
     <div

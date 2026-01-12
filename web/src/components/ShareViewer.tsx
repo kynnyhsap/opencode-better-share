@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ShareData } from "@/lib/types";
+import { calculateContextPercentage, getModelInfo, type ModelInfo } from "@/lib/models";
+import type { AssistantMessage, ShareData } from "@/lib/types";
 import { Header } from "./Header";
 import { MessageList } from "./MessageList";
 
@@ -20,31 +21,62 @@ interface ShareViewerProps {
   data: ShareData;
 }
 
+function isAssistantMessage(info: ShareData["messages"][0]["info"]): info is AssistantMessage {
+  return info.role === "assistant";
+}
+
 export function ShareViewer({ data }: ShareViewerProps) {
   const [theme, setTheme] = useState<Theme>("dark");
   const [font, setFont] = useState<FontOption>(FONTS[0]);
+  const [modelInfo, setModelInfo] = useState<ModelInfo | null>(null);
 
   // Update document title
   useEffect(() => {
     document.title = `${data.session.title} (${data.shareId}) | opncd.com`;
   }, [data.session.title, data.shareId]);
 
-  // Get model info from first assistant message
-  const firstAssistantMessage = data.messages.find((m) => m.info.role === "assistant");
-  const model = firstAssistantMessage?.info.model;
+  // Get first assistant message for model info
+  const firstAssistantMsg = data.messages.find((m) => isAssistantMessage(m.info));
+  const firstAssistant = firstAssistantMsg?.info as AssistantMessage | undefined;
+  const providerID = firstAssistant?.providerID;
+  const modelID = firstAssistant?.modelID;
 
-  // Calculate total tokens and cost from all assistant messages
-  const { totalTokens, totalCost } = data.messages.reduce(
-    (acc, msg) => {
-      if (msg.info.role === "assistant" && msg.info.tokens) {
-        const tokens = msg.info.tokens;
-        acc.totalTokens += tokens.input + tokens.output + tokens.reasoning;
-      }
-      // Cost is typically stored per message (but not always)
-      return acc;
-    },
-    { totalTokens: 0, totalCost: 0 },
-  );
+  // Fetch model info from models.dev API
+  useEffect(() => {
+    if (providerID && modelID) {
+      getModelInfo(providerID, modelID).then(setModelInfo);
+    }
+  }, [providerID, modelID]);
+
+  const model = providerID && modelID ? { providerID, modelID } : undefined;
+
+  // Get context tokens from last assistant message (like OpenCode does)
+  const lastAssistantMsg = [...data.messages]
+    .reverse()
+    .find((m) => isAssistantMessage(m.info) && (m.info as AssistantMessage).tokens.output > 0);
+  const lastAssistant = lastAssistantMsg?.info as AssistantMessage | undefined;
+
+  // Calculate context tokens (input + output + reasoning + cache read + cache write)
+  const contextTokens = lastAssistant
+    ? lastAssistant.tokens.input +
+      lastAssistant.tokens.output +
+      lastAssistant.tokens.reasoning +
+      lastAssistant.tokens.cache.read +
+      lastAssistant.tokens.cache.write
+    : 0;
+
+  // Calculate total cost from all assistant messages
+  const totalCost = data.messages.reduce((acc, msg) => {
+    if (isAssistantMessage(msg.info)) {
+      return acc + msg.info.cost;
+    }
+    return acc;
+  }, 0);
+
+  // Calculate context percentage if we have model info
+  const contextPercentage = modelInfo?.limit?.context
+    ? calculateContextPercentage(contextTokens, modelInfo.limit.context)
+    : null;
 
   const themeStyles =
     theme === "dark"
@@ -79,11 +111,8 @@ export function ShareViewer({ data }: ShareViewerProps) {
       <Header
         shareId={data.shareId}
         sessionId={data.sessionId}
-        sessionTitle={data.session.title}
         version={data.session.version}
         model={model}
-        totalTokens={totalTokens}
-        totalCost={totalCost}
         theme={theme}
         onThemeChange={setTheme}
         font={font}
@@ -92,12 +121,15 @@ export function ShareViewer({ data }: ShareViewerProps) {
       />
 
       <main style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
-        {/* Session title like OpenCode */}
+        {/* Session title with stats - like OpenCode */}
         <div
           style={{
             borderLeft: "3px solid #d97706",
             paddingLeft: "16px",
             marginBottom: "24px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <h1
@@ -110,6 +142,20 @@ export function ShareViewer({ data }: ShareViewerProps) {
           >
             # {data.session.title}
           </h1>
+
+          {/* Stats on the right - format: "13,501  7% ($0.00)" */}
+          <div
+            style={{
+              fontSize: "0.875rem",
+              color: themeStyles.textMuted,
+              display: "flex",
+              gap: "8px",
+            }}
+          >
+            <span>{contextTokens.toLocaleString()}</span>
+            {contextPercentage !== null && <span>{contextPercentage}%</span>}
+            <span>({totalCost > 0 ? `$${totalCost.toFixed(2)}` : "$0.00"})</span>
+          </div>
         </div>
 
         <MessageList messages={data.messages} theme={theme} themeStyles={themeStyles} />
