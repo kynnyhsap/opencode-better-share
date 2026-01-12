@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path";
 import { $, spawn } from "bun";
+import type { Config } from "@opencode-ai/sdk";
 
 const scriptDir = dirname(import.meta.path);
 
@@ -16,12 +17,12 @@ if (!(await pluginFile.exists())) {
 
 console.log(`Starting OpenCode with plugin: ${pluginPath}`);
 
-const proc = spawn(["opencode"], {
+const proc = spawn(["opencode", "--port", "3441"], {
   env: {
     ...process.env,
     OPENCODE_CONFIG_CONTENT: JSON.stringify({
-      plugins: [`file://${pluginPath}`],
-    }),
+      plugin: [`file://${pluginPath}`],
+    } satisfies Config),
   },
   stdin: "inherit",
   stdout: "inherit",

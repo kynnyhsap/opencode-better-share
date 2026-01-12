@@ -16,6 +16,11 @@ function getShareUrl(sessionID: string): string {
 
 export const BetterSharePlugin: Plugin = async () => {
   return {
+    config: async (config) => {
+      // ONLY FOR DEBUGGING, TO KNOW IF THE PLUGIN IS LOADED, REMOVE IN BUILD
+      config.theme = "orng";
+    },
+
     event: async ({ event }) => {
       switch (event.type) {
         case "session.updated": {
