@@ -1,5 +1,7 @@
 import { S3Client } from "bun";
 
+const S3_PUBLIC_URL = process.env.S3_PUBLIC_URL;
+
 const s3 = new S3Client({
   accessKeyId: process.env.S3_ACCESS_KEY_ID,
   secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
@@ -40,8 +42,6 @@ export async function getShareData(shareId: string): Promise<unknown | null> {
 export async function deleteShareData(shareId: string): Promise<void> {
   await s3.delete(`sessions/${shareId}.json`);
 }
-
-const S3_PUBLIC_URL = process.env.S3_PUBLIC_URL;
 
 export function getPublicUrl(shareId: string): string {
   return `${S3_PUBLIC_URL}/sessions/${shareId}.json`;
