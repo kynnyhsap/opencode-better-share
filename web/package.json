@@ -4,7 +4,9 @@
   "scripts": {
     "dev": "bun --bun next dev",
     "build": "bun --bun next build",
-    "start": "bun --bun next start"
+    "start": "bun --bun next start",
+    "lint": "biome lint .",
+    "format": "biome check --write ."
   },
   "dependencies": {
     "@elysiajs/cors": "^1.1.1",
