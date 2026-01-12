@@ -1,10 +1,10 @@
+import { appendFileSync } from "node:fs";
+import { join } from "node:path";
 import type { Plugin } from "@opencode-ai/plugin";
 import type { Session } from "@opencode-ai/sdk";
 import { sleep } from "bun";
 import clipboard from "clipboardy";
-import { appendFileSync } from "node:fs";
-import { join } from "node:path";
-import { BETTER_SHARE_BASE_URL, getBetterShareUrl, getShareId } from "./common";
+import { BETTER_SHARE_BASE_URL, getBetterShareUrl, getShareId, getShareUrl } from "./common";
 import { findProjectForSession, readFullSession } from "./storage";
 import type { ShareData } from "./types";
 
@@ -48,26 +48,41 @@ async function requestPresignedUrl(session: Session): Promise<PresignResponse | 
   }
 }
 
-// TODO: this method is flaky, i need to make it more reliable
-async function overrideClipboard(url: string) {
-  sleep(100);
-  // OpenCode copies its share URL to clipboard
-  // We want to replace it with our Better Share URL
+async function overrideClipboardWithBetterShareUrl(sessionID: string) {
+  const betterShareUrl = getBetterShareUrl(sessionID);
+  const shareUrl = getShareUrl(sessionID);
+
+  log("Better share URL:", betterShareUrl);
+
   const timeoutMs = 1000;
+  const pollIntervalMs = 50;
   const startedAt = Date.now();
 
-  let currentClipboardText = await clipboard.read();
+  let current = await clipboard.read();
 
-  while (currentClipboardText !== url && Date.now() - startedAt < timeoutMs) {
-    await clipboard.write(url);
-    currentClipboardText = await clipboard.read();
+  // Wait for OpenCode to set its share URL in clipboard
+  while (Date.now() - startedAt < timeoutMs) {
+    current = await clipboard.read();
+
+    // OpenCode has set its URL, now override with ours
+    if (current === shareUrl) {
+      await clipboard.write(betterShareUrl);
+      log("Replaced OpenCode URL with:", betterShareUrl);
+
+      return betterShareUrl;
+    }
+
+    await sleep(pollIntervalMs);
   }
 
-  sleep(100);
-
-  if (currentClipboardText !== url) {
-    await clipboard.write(url);
+  // Timeout reached, force write our URL anyway
+  const final = await clipboard.read();
+  if (final !== betterShareUrl) {
+    await clipboard.write(betterShareUrl);
+    log("Timeout, force wrote:", betterShareUrl);
   }
+
+  return betterShareUrl;
 }
 
 async function uploadSession(presignedUrl: string, shareData: ShareData): Promise<boolean> {
@@ -99,9 +114,7 @@ async function handleSessionShare(session: Session) {
   log("Session shared:", session.id);
 
   // Override clipboard immediately
-  const betterShareUrl = getBetterShareUrl(session.id);
-  log("Better share URL:", betterShareUrl);
-  overrideClipboard(betterShareUrl).then(() => {
+  overrideClipboardWithBetterShareUrl(session.id).then((betterShareUrl) => {
     log("Clipboard set to:", betterShareUrl);
   });
 
