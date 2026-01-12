@@ -2,7 +2,7 @@
 
 import type { ThemedProps } from "@/components/ui";
 import type { ToolPart } from "@/lib/types";
-import { BashTool, isBashWithOutput } from "./BashTool";
+import { BashTool, isBashTool } from "./BashTool";
 import { DefaultTool } from "./DefaultTool";
 import { EditTool, isEditWithDiff } from "./EditTool";
 
@@ -19,8 +19,8 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
     return <EditTool tool={tool} themeStyles={themeStyles} />;
   }
 
-  // Bash tool with output
-  if (isBashWithOutput(tool)) {
+  // Bash tool
+  if (isBashTool(tool)) {
     return <BashTool tool={tool} themeStyles={themeStyles} />;
   }
 

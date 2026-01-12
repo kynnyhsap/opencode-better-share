@@ -1,4 +1,4 @@
-export { BashTool, isBashWithOutput } from "./BashTool";
+export { BashTool, isBashTool } from "./BashTool";
 export { DefaultTool } from "./DefaultTool";
 export { DiffView } from "./DiffView";
 export { EditTool, isEditWithDiff } from "./EditTool";

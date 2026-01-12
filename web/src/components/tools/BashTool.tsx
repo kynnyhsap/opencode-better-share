@@ -9,15 +9,10 @@ interface BashToolProps extends ThemedProps {
 }
 
 /**
- * Check if this Bash tool has output metadata
+ * Check if this is a completed Bash tool
  */
-export function isBashWithOutput(tool: ToolPart): boolean {
-  return (
-    tool.tool === "mcp_bash" &&
-    "metadata" in tool.state &&
-    tool.state.metadata !== undefined &&
-    "output" in tool.state.metadata
-  );
+export function isBashTool(tool: ToolPart): boolean {
+  return tool.tool === "bash" && tool.state.status === "completed";
 }
 
 /**
@@ -26,7 +21,8 @@ export function isBashWithOutput(tool: ToolPart): boolean {
 export function BashTool({ tool, themeStyles }: BashToolProps) {
   const command = getToolInput<string>(tool, "command");
   const description = getToolInput<string>(tool, "description");
-  const output = getToolMetadata<string>(tool, "output");
+  // Output is at state.output for completed tools, not metadata
+  const output = tool.state.status === "completed" ? tool.state.output : undefined;
 
   if (!command) {
     return null;
