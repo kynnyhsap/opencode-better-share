@@ -1,9 +1,9 @@
+import { appendFileSync } from "node:fs";
+import { join } from "node:path";
 import type { Plugin } from "@opencode-ai/plugin";
 import type { Message, OpencodeClient, Part, Session } from "@opencode-ai/sdk";
 import { sleep } from "bun";
 import clipboard from "clipboardy";
-import { appendFileSync } from "node:fs";
-import { join } from "node:path";
 import { BETTER_SHARE_BASE_URL, getBetterShareUrl, getShareId, getShareUrl } from "./common";
 
 const LOG_FILE = join(__dirname, "debug.log");
