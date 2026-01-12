@@ -10,7 +10,7 @@
   "files": ["dist"],
   "scripts": {
     "dev": "bun run dev.ts",
-    "build": "bun build src/index.ts --outdir dist --target node",
+    "build": "bun build src/index.ts --outdir dist --target bun",
     "prepublishOnly": "bun run build",
     "typecheck": "tsc --noEmit",
     "format": "biome check --write .",
