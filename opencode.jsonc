@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "formatter": {
+    "prettier": {
+      "disabled": true
+    },
+
+    "biome": {
+      "command": ["bunx", "@biomejs/biome", "check", "--write", "."]
+    }
+  },
+  
+
+  "permission": {
+    "external_directory": "allow"
+  }
+}
