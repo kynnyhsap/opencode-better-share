@@ -24,7 +24,7 @@ When writing code or debugging issues, consult these official docs:
 
 A monorepo with two packages:
 
-- `plugin` - OpenCode plugin that overrides `/share` and `/unshare` commands
+- `plugin` - OpenCode plugin that overrides session share logic
 - `web` - Next.js app with Elysia API, deployed to Railway
 
 **Runtime:** Bun (not Node.js)
@@ -39,23 +39,22 @@ bun run dev          # Run web dev server
 bun run build        # Build all packages
 bun run format       # Format all files with Biome
 bun run lint         # Lint all files with Biome
-bun run check        # Format + lint + organize imports (recommended)
 ```
 
 ### Plugin Package (`plugin`)
 
 ```bash
+bun dev
+bun typecheck    # Type check: tsc --noEmit
 bun run build        # Build: bun build src/index.ts --outdir dist --target node
-bun run typecheck    # Type check: tsc --noEmit
 ```
 
 ### Web Package (`web`)
 
 ```bash
-bun run dev          # Start dev server: bun --bun next dev
+bun dev          # Start dev server: bun --bun next dev
+bun start        # Start production: bun --bun next start
 bun run build        # Production build: bun --bun next build
-bun run start        # Start production: bun --bun next start
-bun run lint         # Run ESLint: next lint
 ```
 
 ### No Test Suite
@@ -68,193 +67,19 @@ This project does not have automated tests. Validate changes by:
 
 ## Code Style Guidelines
 
-This project uses **Biome** for formatting and linting. Run `bun run check` before committing.
+This project uses **Biome** for formatting and linting. Configured in `biome.json`. Run `bun run format` before committing.
 
-### Import Order
 
-Biome auto-organizes imports. The expected order is:
 
-1. Type imports first (`import type { ... }`)
-2. External packages (`nanoid`, `@opencode-ai/plugin`, `elysia`)
-3. Node.js built-ins (`fs/promises`, `path`, `os`)
-4. Local/relative imports (`./share`, `./types`)
-
-```typescript
-// Correct
-import type { Plugin, PluginInput } from "@opencode-ai/plugin";
-import { nanoid } from "nanoid";
-import { readFile } from "fs/promises";
-import { ShareManager } from "./share";
-```
-
-### Formatting
-
-Configured in `biome.json`:
-
-- **Indentation:** 2 spaces
-- **Quotes:** Double quotes for strings
-- **Semicolons:** Always use semicolons
-- **Trailing commas:** Yes, in multi-line objects/arrays
-- **Line length:** ~80-100 characters
-
-### TypeScript Patterns
-
-**Strict mode is enabled.** Key settings:
-
-- `target: ES2022`
-- `module: ESNext`
-- `moduleResolution: bundler`
-- `strict: true`
-
-**Type definitions:**
-
-- Use `interface` for object shapes
-- Use `type` only for unions or aliases
-- Never use `any` - use `unknown` if type is uncertain
-- Always declare return types on exported functions
-
-```typescript
-// Interface for object shapes
-export interface ShareInfo {
-  shareId: string;
-  secret: string;
-  url: string;
-  sessionId: string;
-  createdAt: number;
-}
-
-// Type for unions
-type ToastVariant = "success" | "error" | "info";
-
-// Explicit return types
-async function createShare(
-  id: string,
-): Promise<{ url: string; error?: string }> {
-  // ...
-}
-```
-
-### Naming Conventions
-
-| Element             | Convention           | Example                       |
-| ------------------- | -------------------- | ----------------------------- |
-| Variables/functions | camelCase            | `shareManager`, `handleShare` |
-| Classes             | PascalCase           | `ShareManager`                |
-| Interfaces/Types    | PascalCase           | `ShareInfo`, `ApiError`       |
-| Constants (env)     | SCREAMING_SNAKE_CASE | `API_BASE_URL`, `BASE_URL`    |
-| Files               | lowercase            | `storage.ts`, `share.ts`      |
-| React components    | PascalCase           | `SharePage`, `Home`           |
-
-### Error Handling
-
-**Pattern 1: Result objects with optional error**
-
-```typescript
-async function createShare(): Promise<{ url: string; error?: string }> {
-  if (!valid) {
-    return { url: "", error: "Invalid input" };
-  }
-  return { url: result.url };
-}
-```
-
-**Pattern 2: Early returns for validation**
-
-```typescript
-if (!sessionId) {
-  await showToast(ctx, "No active session", "error");
-  return;
-}
-```
-
-**Pattern 3: Try-catch with fallback**
-
-```typescript
-try {
-  const data = await fetchData();
-  return data;
-} catch {
-  return null;
-}
-```
-
-**Pattern 4: Console logging for debug**
-
-```typescript
-} catch (err) {
-  console.error("[better-share] Sync failed:", err);
-  return false;
-}
-```
-
-### JSDoc Comments
-
-Add JSDoc blocks for exported functions and classes:
-
-```typescript
-/**
- * ShareManager handles all share operations
- * - Creating shares
- * - Syncing updates
- * - Removing shares
- */
-export class ShareManager {
-  /**
-   * Check if a session is currently shared
-   */
-  isShared(sessionID: string): boolean {
-    return this.activeShares.has(sessionID);
-  }
-}
-```
-
-## Bun-Specific APIs
-
-This project uses Bun's native APIs instead of npm packages:
 
 ### PostgreSQL (web)
 
-Use Bun's built-in SQL client (NOT `pg` or other packages):
+Use Bun's built-in SQL client (NOT `pg` or other packages). https://bun.com/docs/runtime/sql.md
 
-```typescript
-import { SQL } from "bun";
-const sql = new SQL({ url: process.env.DATABASE_URL });
 
-// Tagged template queries
-const shares = await sql`SELECT * FROM shares WHERE id = ${id}`;
-```
+### S3 Client (web)
 
-### S3/R2 Client (web)
-
-```typescript
-const client = new Bun.S3Client({
-  endpoint: process.env.S3_ENDPOINT,
-  accessKeyId: process.env.S3_ACCESS_KEY_ID,
-  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-  bucket: process.env.S3_BUCKET,
-});
-```
-
-## Project Structure
-
-```
-better-share/
-├── plugin/src/
-│   ├── index.ts      # Plugin entry, event handlers
-│   ├── share.ts      # ShareManager class
-│   ├── storage.ts    # Read OpenCode local session files
-│   └── types.ts      # TypeScript interfaces
-├── web/src/
-│   ├── app/
-│   │   ├── api/[[...slugs]]/route.ts  # Elysia API catch-all
-│   │   ├── share/[id]/page.tsx        # Share viewer
-│   │   ├── page.tsx                   # Home page
-│   │   └── layout.tsx
-│   └── lib/
-│       ├── api.ts    # Elysia routes
-│       ├── db.ts     # PostgreSQL database
-│       └── s3.ts     # S3/R2 operations
-```
+Use Bun's built-in S3 client (NOT `@aws-sdk/client-s3` or other packages ) https://bun.com/docs/runtime/s3.md
 
 ## Environment Variables
 
@@ -301,21 +126,12 @@ export const app = new Elysia({ prefix: "/api" })
   );
 ```
 
-### React Server Components (Next.js App Router)
-
-```typescript
-export default async function SharePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const data = await getShareData(id);
-  if (!data) notFound();
-  return <div>...</div>;
-}
-```
 
 ## Common Pitfalls
 
-1. **Don't use Node.js APIs directly** - Use Bun equivalents
+1. **Don't use Node.js APIs directly in Bun has an alternative** - Use Bun equivalents
 2. **Don't add AWS SDK** - Use `Bun.S3Client` for S3/R2
 3. **Don't forget type imports** - Use `import type` for types only
 4. **Don't use `any`** - Use `unknown` or proper types
-5. **Run typecheck before committing** - `bun run typecheck` in plugin package
+5. **Run typecheck before committing** - `bun typecheck`
+6. **Run format before committting** - `bun format` in 
