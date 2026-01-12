@@ -15,7 +15,7 @@ interface MessageListProps extends ThemedProps {
  */
 export function MessageList({ messages, colorScheme, themeStyles }: MessageListProps) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       {messages.map((message) => (
         <Message
           key={message.info.id}

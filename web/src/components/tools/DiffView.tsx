@@ -1,56 +1,79 @@
 "use client";
 
+import type { ThemeRegistrationResolved } from "@pierre/diffs";
+import { registerCustomTheme } from "@pierre/diffs";
 import { PatchDiff } from "@pierre/diffs/react";
+import { type CSSProperties, useEffect, useState } from "react";
+import type { ThemeStyles } from "@/lib/theme";
+import { generateCSSVarShikiTheme, generateDiffCSS, generateSyntaxCSSVars } from "@/lib/theme";
+
+// Custom theme name for our dynamic theme
+const CUSTOM_THEME_NAME = "better-share";
+
+// Track if theme has been registered (module-level singleton)
+let themeRegistered = false;
+
+// Register the theme once at module load time
+function ensureThemeRegistered() {
+  if (themeRegistered) return;
+
+  registerCustomTheme(CUSTOM_THEME_NAME, () => {
+    const theme = generateCSSVarShikiTheme(CUSTOM_THEME_NAME);
+    return Promise.resolve(theme as unknown as ThemeRegistrationResolved);
+  });
+
+  themeRegistered = true;
+}
 
 interface DiffViewProps {
   diff: string;
   filePath?: string;
+  themeStyles?: ThemeStyles;
 }
 
 /**
  * Diff view component using @pierre/diffs
+ * Uses split (side-by-side) view like OpenCode TUI
+ * Supports theme customization via CSS variables and Shiki syntax highlighting
  */
-export function DiffView({ diff, filePath }: DiffViewProps) {
+export function DiffView({ diff, themeStyles }: DiffViewProps) {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    ensureThemeRegistered();
+    setIsClient(true);
+  }, []);
+
   if (!diff) {
     return null;
   }
 
-  // Detect language from file extension
-  const lang = filePath ? getLanguageFromPath(filePath) : undefined;
+  // Generate CSS overrides for diff colors
+  const unsafeCSS = themeStyles ? generateDiffCSS(themeStyles) : undefined;
+
+  // Generate CSS variables for syntax highlighting
+  const syntaxVars = themeStyles ? generateSyntaxCSSVars(themeStyles) : {};
+
+  // Use custom theme if registered, otherwise fall back to github-dark
+  const themeName = isClient ? CUSTOM_THEME_NAME : "github-dark";
 
   return (
-    <PatchDiff
-      patch={diff}
-      view="stacked"
-      lang={lang}
-      theme="github-dark"
-      changeIndicators="classic"
-      showHeader={false}
-      style={{
-        fontSize: "0.75rem",
-      }}
-    />
+    <div style={syntaxVars as CSSProperties}>
+      <PatchDiff
+        patch={diff}
+        options={{
+          theme: themeName,
+          diffStyle: "split",
+          diffIndicators: "classic",
+          disableFileHeader: true,
+          disableLineNumbers: false,
+          overflow: "scroll",
+          unsafeCSS,
+        }}
+        style={{
+          fontSize: "0.75rem",
+        }}
+      />
+    </div>
   );
-}
-
-function getLanguageFromPath(path: string): string | undefined {
-  const ext = path.split(".").pop()?.toLowerCase();
-  const langMap: Record<string, string> = {
-    ts: "typescript",
-    tsx: "tsx",
-    js: "javascript",
-    jsx: "jsx",
-    json: "json",
-    md: "markdown",
-    css: "css",
-    html: "html",
-    py: "python",
-    rs: "rust",
-    go: "go",
-    rb: "ruby",
-    sh: "bash",
-    yml: "yaml",
-    yaml: "yaml",
-  };
-  return ext ? langMap[ext] : undefined;
 }
