@@ -1,11 +1,9 @@
-import type { TuiTheme } from "./types";
-
 // Import all TUI theme JSON files
 import auraTheme from "../themes/aura.json";
 import ayuTheme from "../themes/ayu.json";
+import catppuccinTheme from "../themes/catppuccin.json";
 import catppuccinFrappeTheme from "../themes/catppuccin-frappe.json";
 import catppuccinMacchiatoTheme from "../themes/catppuccin-macchiato.json";
-import catppuccinTheme from "../themes/catppuccin.json";
 import cobalt2Theme from "../themes/cobalt2.json";
 import cursorTheme from "../themes/cursor.json";
 import draculaTheme from "../themes/dracula.json";
@@ -33,6 +31,7 @@ import tokyonightTheme from "../themes/tokyonight.json";
 import vercelTheme from "../themes/vercel.json";
 import vesperTheme from "../themes/vesper.json";
 import zenburnTheme from "../themes/zenburn.json";
+import type { TuiTheme } from "./types";
 
 export const THEMES: Record<string, TuiTheme> = {
   opencode: opencodeTheme as TuiTheme,

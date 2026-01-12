@@ -1,15 +1,21 @@
 "use client";
 
+import { MarkdownContent } from "@/components/markdown";
+import { ToolCall } from "@/components/tools";
+import type { ThemedProps } from "@/components/ui";
 import type { ColorScheme } from "@/lib/theme";
-import type { AssistantMessage, MessageWithParts, Part, TextPart, ToolPart } from "@/lib/types";
-import { MarkdownContent } from "./MarkdownContent";
-import type { ThemeStyles } from "./ShareViewer";
-import { ToolCall } from "./ToolCall";
+import type {
+  AssistantMessage as AssistantMessageType,
+  MessageWithParts,
+  Part,
+  TextPart,
+  ToolPart,
+} from "@/lib/types";
+import { formatDuration } from "@/lib/utils";
 
-interface MessageProps {
+interface AssistantMessageProps extends ThemedProps {
   message: MessageWithParts;
   colorScheme: ColorScheme;
-  themeStyles: ThemeStyles;
 }
 
 function isTextPart(part: Part): part is TextPart {
@@ -20,24 +26,18 @@ function isToolPart(part: Part): part is ToolPart {
   return part.type === "tool";
 }
 
-function isAssistantMessage(msg: MessageWithParts["info"]): msg is AssistantMessage {
+function isAssistantMessage(msg: MessageWithParts["info"]): msg is AssistantMessageType {
   return msg.role === "assistant";
 }
 
-function formatDuration(startMs: number, endMs?: number): string {
-  if (!endMs) return "";
-  const durationSec = (endMs - startMs) / 1000;
-  return `${durationSec.toFixed(1)}s`;
-}
-
-export function Message({ message, colorScheme, themeStyles }: MessageProps) {
+/**
+ * Assistant message component - displays AI responses with tools
+ */
+export function AssistantMessage({ message, colorScheme, themeStyles }: AssistantMessageProps) {
   const { info, parts } = message;
-  const isUser = info.role === "user";
 
-  // Get text content from parts
   const textParts = parts.filter(isTextPart);
   const toolParts = parts.filter(isToolPart);
-
   const textContent = textParts.map((p) => p.text).join("\n");
 
   // Get assistant-specific fields
@@ -49,19 +49,7 @@ export function Message({ message, colorScheme, themeStyles }: MessageProps) {
   const modelId = assistantInfo?.modelID;
 
   return (
-    <div
-      style={{
-        // User messages: backgroundPanel + colored border (like TUI)
-        // Assistant messages: no background wrapper
-        backgroundColor: isUser ? themeStyles.bgSecondary : "transparent",
-        borderLeft: isUser ? `3px solid ${themeStyles.primary}` : "none",
-        paddingLeft: isUser ? "16px" : "0",
-        paddingTop: isUser ? "12px" : "0",
-        paddingBottom: isUser ? "12px" : "0",
-        paddingRight: isUser ? "12px" : "0",
-        borderRadius: isUser ? "0 4px 4px 0" : "0",
-      }}
-    >
+    <div>
       {/* Text content */}
       {textContent && (
         <div style={{ marginBottom: toolParts.length > 0 ? "16px" : 0 }}>
@@ -82,8 +70,8 @@ export function Message({ message, colorScheme, themeStyles }: MessageProps) {
         </div>
       )}
 
-      {/* Footer for assistant messages */}
-      {!isUser && (agent || modelId || duration) && (
+      {/* Footer */}
+      {(agent || modelId || duration) && (
         <div
           style={{
             marginTop: "12px",

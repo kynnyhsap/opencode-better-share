@@ -3,13 +3,12 @@
 import type { ComponentType, JSX } from "react";
 import { useMemo } from "react";
 import { Streamdown } from "streamdown";
+import type { ThemedProps, ThemeStyles } from "@/components/ui";
 import type { ColorScheme } from "@/lib/theme";
-import type { ThemeStyles } from "./ShareViewer";
 
-interface MarkdownContentProps {
+interface MarkdownContentProps extends ThemedProps {
   content: string;
   colorScheme: ColorScheme;
-  themeStyles: ThemeStyles;
 }
 
 type Components = {
@@ -170,7 +169,7 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
       />
     ),
 
-    // Tables - no header background, consistent border color
+    // Tables
     table: ({ children, ...props }) => (
       <table
         style={{
@@ -214,6 +213,9 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
   };
 }
 
+/**
+ * Markdown content renderer using Streamdown
+ */
 export function MarkdownContent({ content, colorScheme, themeStyles }: MarkdownContentProps) {
   const isDark = colorScheme === "dark";
 

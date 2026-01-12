@@ -1,10 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import type { ThemedProps, ThemeStyles } from "@/components/ui";
 import { type ColorScheme, THEME_LIST } from "@/lib/theme";
-import { FONTS, type FontOption, type ThemeStyles } from "./ShareViewer";
 
-interface HeaderProps {
+// Font options using CSS variables from next/font
+export const FONTS = [
+  { name: "Geist Mono", value: "var(--font-geist-mono), monospace" },
+  { name: "JetBrains Mono", value: "var(--font-jetbrains-mono), monospace" },
+  { name: "Fira Code", value: "var(--font-fira-code), monospace" },
+] as const;
+
+export type FontOption = (typeof FONTS)[number];
+
+interface HeaderProps extends ThemedProps {
   shareId: string;
   sessionId: string;
   version: string;
@@ -18,10 +27,17 @@ interface HeaderProps {
   onColorSchemeChange: (scheme: ColorScheme) => void;
   font: FontOption;
   onFontChange: (font: FontOption) => void;
-  themeStyles: ThemeStyles;
 }
 
-function CopyButton({ text, label }: { text: string; label: string }) {
+function CopyButton({
+  text,
+  label,
+  themeStyles,
+}: {
+  text: string;
+  label: string;
+  themeStyles: ThemeStyles;
+}) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -37,7 +53,7 @@ function CopyButton({ text, label }: { text: string; label: string }) {
       style={{
         background: "none",
         border: "none",
-        color: "inherit",
+        color: copied ? themeStyles.success : "inherit",
         cursor: "pointer",
         padding: "2px 6px",
         borderRadius: "4px",
@@ -51,6 +67,9 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   );
 }
 
+/**
+ * Header component with theme/font selectors
+ */
 export function Header({
   shareId,
   sessionId,
@@ -190,7 +209,7 @@ export function Header({
             >
               {sessionId.slice(-8)}
             </code>
-            <CopyButton text={sessionId} label="session ID" />
+            <CopyButton text={sessionId} label="session ID" themeStyles={themeStyles} />
           </div>
 
           {model && (

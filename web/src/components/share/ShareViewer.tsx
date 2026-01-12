@@ -1,19 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { MessageList } from "@/components/messages";
+import { BlockWrapper } from "@/components/ui";
 import { usePersistedState } from "@/lib/hooks";
 import { calculateContextPercentage, getModelInfo, type ModelInfo } from "@/lib/models";
 import {
   type ColorScheme,
   DEFAULT_THEME_ID,
   resolveTheme,
-  themeToStyles,
   THEMES,
-  type ThemeStyles,
+  themeToStyles,
 } from "@/lib/theme";
 import type { AssistantMessage, ShareData } from "@/lib/types";
 import { Header } from "./Header";
-import { MessageList } from "./MessageList";
 
 // Font options using CSS variables from next/font
 export const FONTS = [
@@ -23,7 +23,6 @@ export const FONTS = [
 ] as const;
 
 export type FontOption = (typeof FONTS)[number];
-export type { ThemeStyles };
 
 interface ShareViewerProps {
   data: ShareData;
@@ -33,6 +32,9 @@ function isAssistantMessage(info: ShareData["messages"][0]["info"]): info is Ass
   return info.role === "assistant";
 }
 
+/**
+ * Main share viewer component
+ */
 export function ShareViewer({ data }: ShareViewerProps) {
   // Persisted preferences
   const [themeId, setThemeId] = usePersistedState("theme", DEFAULT_THEME_ID);
@@ -127,45 +129,42 @@ export function ShareViewer({ data }: ShareViewerProps) {
       />
 
       <main style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
-        {/* Session title with stats - like OpenCode TUI header */}
-        <div
-          style={{
-            backgroundColor: themeStyles.bgSecondary,
-            borderLeft: `3px solid ${themeStyles.border}`,
-            paddingLeft: "16px",
-            paddingTop: "12px",
-            paddingBottom: "12px",
-            paddingRight: "12px",
-            marginBottom: "24px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "1rem",
-              fontWeight: 500,
-              color: themeStyles.text,
-            }}
-          >
-            # {data.session.title}
-          </h1>
+        {/* Session title with stats */}
+        <div style={{ marginBottom: "24px" }}>
+          <BlockWrapper themeStyles={themeStyles}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: "1rem",
+                  fontWeight: 500,
+                  color: themeStyles.text,
+                }}
+              >
+                # {data.session.title}
+              </h1>
 
-          {/* Stats on the right - format: "13,501  7% ($0.00)" */}
-          <div
-            style={{
-              fontSize: "0.875rem",
-              color: themeStyles.textMuted,
-              display: "flex",
-              gap: "8px",
-            }}
-          >
-            <span>{contextTokens.toLocaleString()}</span>
-            {contextPercentage !== null && <span>{contextPercentage}%</span>}
-            <span>({totalCost > 0 ? `$${totalCost.toFixed(2)}` : "$0.00"})</span>
-          </div>
+              {/* Stats on the right */}
+              <div
+                style={{
+                  fontSize: "0.875rem",
+                  color: themeStyles.textMuted,
+                  display: "flex",
+                  gap: "8px",
+                }}
+              >
+                <span>{contextTokens.toLocaleString()}</span>
+                {contextPercentage !== null && <span>{contextPercentage}%</span>}
+                <span>({totalCost > 0 ? `$${totalCost.toFixed(2)}` : "$0.00"})</span>
+              </div>
+            </div>
+          </BlockWrapper>
         </div>
 
         <MessageList messages={data.messages} colorScheme={colorScheme} themeStyles={themeStyles} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShareViewer } from "@/components/ShareViewer";
+import { ShareViewer } from "@/components";
 import type { ShareData } from "@/lib/types";
 
 interface SharePageClientProps {

@@ -1,10 +1,9 @@
 "use client";
 
-import type { ThemeStyles } from "./ShareViewer";
+import type { ThemedProps } from "@/components/ui";
 
-interface DiffViewProps {
+interface DiffViewProps extends ThemedProps {
   diff: string;
-  themeStyles: ThemeStyles;
 }
 
 interface DiffLine {
@@ -27,7 +26,6 @@ function parseDiff(diff: string): DiffLine[] {
     if (hunkMatch) {
       oldLine = Number.parseInt(hunkMatch[1], 10);
       newLine = Number.parseInt(hunkMatch[2], 10);
-      // Skip the hunk header line in output
       continue;
     }
 
@@ -66,6 +64,9 @@ function parseDiff(diff: string): DiffLine[] {
   return result;
 }
 
+/**
+ * Diff view component for displaying unified diffs
+ */
 export function DiffView({ diff, themeStyles }: DiffViewProps) {
   const lines = parseDiff(diff);
 
