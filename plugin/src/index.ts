@@ -1,17 +1,6 @@
 import type { Plugin } from "@opencode-ai/plugin";
 import clipboard from "clipboardy";
-import { BETTER_SHARE_BASE_URL } from "./common";
-
-/**
- * Returns share id from session id. OpenCode's share ID is the last 8 characters of the session ID
- */
-function getShareId(sessionID: string): string {
-  return sessionID.slice(-8);
-}
-
-function getShareUrl(sessionID: string): string {
-  return `${BETTER_SHARE_BASE_URL}/share/${getShareId(sessionID)}`;
-}
+import { getBetterShareUrl } from "./common";
 
 export const BetterSharePlugin: Plugin = async () => {
   return {
@@ -24,7 +13,7 @@ export const BetterSharePlugin: Plugin = async () => {
       switch (event.type) {
         case "session.updated": {
           const sessionID = event.properties.info.id;
-          const betterShareUrl = getShareUrl(sessionID);
+          const betterShareUrl = getBetterShareUrl(sessionID);
           const shareUrl = event.properties.info.share?.url;
 
           if (shareUrl) {
