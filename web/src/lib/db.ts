@@ -1,9 +1,13 @@
 import { sql } from "bun";
 
 export interface Share {
-  share_id: string;
+  id: number;
+
   session_id: string;
+  share_id: string;
+
   secret: string;
+
   created_at: number;
 }
 
