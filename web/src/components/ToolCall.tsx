@@ -10,6 +10,28 @@ interface ToolCallProps {
   themeStyles: ThemeStyles;
 }
 
+// Block tool wrapper - like TUI's BlockTool component
+function BlockToolWrapper({
+  children,
+  themeStyles,
+}: {
+  children: React.ReactNode;
+  themeStyles: ThemeStyles;
+}) {
+  return (
+    <div
+      style={{
+        backgroundColor: themeStyles.bgSecondary,
+        borderLeft: `3px solid ${themeStyles.border}`,
+        padding: "12px 16px",
+        fontSize: "0.8125rem",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 // Check if this is an Edit tool with diff metadata
 function isEditWithDiff(tool: ToolPart): boolean {
   return (
@@ -21,10 +43,32 @@ function isEditWithDiff(tool: ToolPart): boolean {
   );
 }
 
-// Get the file path from Edit tool input
-function getFilePath(tool: ToolPart): string | undefined {
-  if ("input" in tool.state && tool.state.input && "filePath" in tool.state.input) {
-    return tool.state.input.filePath as string;
+// Check if this is a Bash tool with output
+function isBashWithOutput(tool: ToolPart): boolean {
+  return (
+    tool.tool === "mcp_bash" &&
+    "metadata" in tool.state &&
+    tool.state.metadata !== undefined &&
+    "output" in tool.state.metadata
+  );
+}
+
+// Get input field from tool state
+function getInput<T>(tool: ToolPart, field: string): T | undefined {
+  if ("input" in tool.state && tool.state.input && field in tool.state.input) {
+    return tool.state.input[field] as T;
+  }
+  return undefined;
+}
+
+// Get metadata field from tool state
+function getMetadata<T>(tool: ToolPart, field: string): T | undefined {
+  if (
+    "metadata" in tool.state &&
+    tool.state.metadata !== undefined &&
+    field in tool.state.metadata
+  ) {
+    return tool.state.metadata[field] as T;
   }
   return undefined;
 }
@@ -54,13 +98,17 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
 
   // Check if this is an Edit tool with diff
   const hasDiff = isEditWithDiff(tool);
-  const diffContent = hasDiff
-    ? ((state as unknown as { metadata: { diff: string } }).metadata.diff as string)
-    : null;
-  const filePath = getFilePath(tool);
+  const diffContent = hasDiff ? getMetadata<string>(tool, "diff") : null;
+  const filePath = getInput<string>(tool, "filePath");
 
-  // For Edit with diff, show expanded by default
-  const [expanded, setExpanded] = useState(!hasDiff);
+  // Check if this is a Bash tool with output
+  const hasBashOutput = isBashWithOutput(tool);
+  const bashCommand = getInput<string>(tool, "command");
+  const bashDescription = getInput<string>(tool, "description");
+  const bashOutput = hasBashOutput ? getMetadata<string>(tool, "output") : null;
+
+  // For Edit/Bash with content, show expanded by default
+  const [expanded, setExpanded] = useState(!hasDiff && !hasBashOutput);
 
   const title = "title" in state ? state.title : tool.tool;
   const hasOutput = "output" in state;
@@ -76,33 +124,43 @@ export function ToolCall({ tool, themeStyles }: ToolCallProps) {
   // Edit tool with diff - special rendering
   if (hasDiff && diffContent) {
     return (
-      <div
-        style={{
-          fontSize: "0.8125rem",
-        }}
-      >
+      <BlockToolWrapper themeStyles={themeStyles}>
         {/* Title like TUI: ←Edit ../path/to/file */}
-        <div
-          style={{
-            color: themeStyles.textMuted,
-            marginBottom: "8px",
-          }}
-        >
-          <span style={{ marginRight: "4px" }}>←</span>
-          Edit {filePath ? normalizePath(filePath) : "file"}
+        <div style={{ color: themeStyles.textMuted, marginBottom: "8px" }}>
+          ←Edit {filePath ? normalizePath(filePath) : "file"}
         </div>
 
         {/* Diff view */}
-        <div
-          style={{
-            borderRadius: "4px",
-            overflow: "hidden",
-            border: `1px solid ${themeStyles.border}`,
-          }}
-        >
-          <DiffView diff={diffContent} themeStyles={themeStyles} />
-        </div>
-      </div>
+        <DiffView diff={diffContent} themeStyles={themeStyles} />
+      </BlockToolWrapper>
+    );
+  }
+
+  // Bash tool with output - special rendering like TUI
+  if (hasBashOutput && bashCommand) {
+    return (
+      <BlockToolWrapper themeStyles={themeStyles}>
+        {/* Description as comment */}
+        <div style={{ color: themeStyles.textMuted }}># {bashDescription || "Shell"}</div>
+
+        {/* Command with $ prefix */}
+        <div style={{ color: themeStyles.text, marginTop: "8px" }}>$ {bashCommand}</div>
+
+        {/* Output */}
+        {bashOutput && (
+          <pre
+            style={{
+              margin: 0,
+              marginTop: "8px",
+              color: themeStyles.text,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {bashOutput.trim()}
+          </pre>
+        )}
+      </BlockToolWrapper>
     );
   }
 
