@@ -11,7 +11,15 @@ When writing code or debugging issues, consult these official docs:
 | Bun              | https://bun.sh/llms.txt           |
 | Elysia           | https://elysiajs.com/llms.txt     |
 | Next.js          | https://nextjs.org/docs           |
-| OpenCode Plugins | https://opencode.ai/docs/plugins/ |
+| OpenCode Plugins | https://opencode.ai/docs/plugins/            |
+| OpenCode Share   | https://opencode.ai/docs/share/              |
+| OpenCode Source  | `~/code/opencode` (https://github.com/anomalyco/opencode) |
+
+**When to consult OpenCode source code:**
+
+- Understanding internal APIs, types, or behaviors not covered in docs
+- Debugging plugin integration issues
+- Implementing features that need to match OpenCode's internal patterns
 
 **Always check the relevant documentation before:**
 
@@ -96,6 +104,24 @@ DATABASE_URL=postgres://user:pass@host:5432/dbname
 ```
 
 ## Key Patterns
+
+### OpenCode Session Storage
+
+Sessions are stored at `~/.local/share/opencode/storage/` with subdirectories:
+
+- `session/` - Session data
+- `message/` - Message data
+- `part/` - Part data
+- `session_share/` - Session share data
+
+### OpenCode Default Share Implementation (Reference)
+
+This is OpenCode's built-in sharing logic (not this plugin). Kept for reference:
+
+1. **Create share**: `POST https://opncd.ai/api/share`
+   - Returns `{ id, url, secret }`
+2. **Sync data**: `POST /api/share/{id}/sync`
+   - Syncs session, messages, parts, diffs in real-time
 
 ### Elysia API Routes
 
