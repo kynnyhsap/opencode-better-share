@@ -46,7 +46,7 @@ async function requestPresignedUrl(session: Session): Promise<PresignResponse | 
   }
 }
 
-// TODO: make
+// TODO: this method is flaky, i need to make it more reliable
 async function overrideClipboard(url: string) {
   sleep(100);
   // OpenCode copies its share URL to clipboard
@@ -77,6 +77,7 @@ async function handleSessionShare(session: Session) {
 
   // Override clipboard immediately
   const betterShareUrl = getBetterShareUrl(session.id);
+  log("Better share URL:", betterShareUrl);
   overrideClipboard(betterShareUrl).then(() => {
     log("Clipboard set to:", betterShareUrl);
   });
