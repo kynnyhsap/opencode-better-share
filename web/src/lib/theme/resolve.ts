@@ -77,10 +77,12 @@ export function themeToStyles(resolved: ResolvedTheme) {
     syntaxOperator: resolved.syntaxOperator || "#56b6c2",
 
     // Diff
-    diffAdded: resolved.diffAdded || "#4fd6be",
-    diffRemoved: resolved.diffRemoved || "#c53b53",
-    diffAddedBg: resolved.diffAddedBg || "#20303b",
-    diffRemovedBg: resolved.diffRemovedBg || "#37222c",
+    diffAdded: resolved.diffAdded || "#a6e3a1",
+    diffRemoved: resolved.diffRemoved || "#f38ba8",
+    diffAddedBg: resolved.diffAddedBg || "#1e3a2f",
+    diffRemovedBg: resolved.diffRemovedBg || "#3b1f2b",
+    diffContextBg: resolved.diffContextBg || resolved.backgroundPanel || "#141414",
+    diffLineNumber: resolved.diffLineNumber || resolved.textMuted || "#808080",
   };
 }
 
