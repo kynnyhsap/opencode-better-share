@@ -7,28 +7,30 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/yourusername/opencode-better-share.git"
-  },
-  "homepage": "https://opncd.com",
-  "bugs": {
-    "url": "https://github.com/yourusername/opencode-better-share/issues"
-  },
-  "files": [
-    "dist"
-  ],
+  "files": ["dist"],
   "scripts": {
     "dev": "bun run dev.ts",
     "build": "bun build src/index.ts --outdir dist --target node",
     "prepublishOnly": "bun run build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "format": "biome check --write .",
+    "lint": "biome lint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kynnyhsap/opencode-better-share.git"
+  },
+  "homepage": "https://opncd.com",
+  "bugs": {
+    "url": "https://github.com/kynnyhsap/opencode-better-share/issues"
   },
   "keywords": [
     "opencode",
     "opencode-plugin",
+    "plugin",
     "share",
-    "session"
+    "session",
+    "better-share"
   ],
   "dependencies": {
     "@opencode-ai/sdk": "^1.1.14",

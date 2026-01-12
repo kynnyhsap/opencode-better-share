@@ -1,6 +1,6 @@
-import { dirname, join } from "node:path";
-import { $, spawn } from "bun";
 import type { Config } from "@opencode-ai/sdk";
+import { $, spawn } from "bun";
+import { dirname, join } from "node:path";
 
 const scriptDir = dirname(import.meta.path);
 
