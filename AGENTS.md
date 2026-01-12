@@ -69,17 +69,13 @@ This project does not have automated tests. Validate changes by:
 
 This project uses **Biome** for formatting and linting. Configured in `biome.json`. Run `bun run format` before committing.
 
-
-
-
 ### PostgreSQL (web)
 
 Use Bun's built-in SQL client (NOT `pg` or other packages). https://bun.com/docs/runtime/sql.md
 
-
 ### S3 Client (web)
 
-Use Bun's built-in S3 client (NOT `@aws-sdk/client-s3` or other packages ) https://bun.com/docs/runtime/s3.md
+Use Bun's built-in S3 client (NOT `@aws-sdk/client-s3` or other packages) https://bun.com/docs/runtime/s3.md
 
 ## Environment Variables
 
@@ -126,7 +122,6 @@ export const app = new Elysia({ prefix: "/api" })
   );
 ```
 
-
 ## Common Pitfalls
 
 1. **Don't use Node.js APIs directly in Bun has an alternative** - Use Bun equivalents
@@ -134,4 +129,4 @@ export const app = new Elysia({ prefix: "/api" })
 3. **Don't forget type imports** - Use `import type` for types only
 4. **Don't use `any`** - Use `unknown` or proper types
 5. **Run typecheck before committing** - `bun typecheck`
-6. **Run format before committting** - `bun format` in 
+6. **Run format before committing** - `bun run format` 
