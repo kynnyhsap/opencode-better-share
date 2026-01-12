@@ -9,12 +9,16 @@ const s3 = new S3Client({
   bucket: process.env.S3_BUCKET,
 });
 
+export function key(shareId: string): string {
+  return `sessions/${shareId}.json`;
+}
+
 export function getPresignedPutUrl(
   shareId: string,
   expiresIn: number = 3600,
   maxSize?: number,
 ): string {
-  return s3.presign(`sessions/${shareId}.json`, {
+  return s3.presign(key(shareId), {
     expiresIn,
     method: "PUT",
     type: "application/json",
@@ -24,13 +28,13 @@ export function getPresignedPutUrl(
 
 export async function getShareData(shareId: string): Promise<unknown | null> {
   try {
-    const file = s3.file(`sessions/${shareId}.json`);
+    const file = s3.file(key(shareId));
 
-    // const exists = await file.exists();
+    const exists = await file.exists();
 
-    // if (!exists) {
-    //   return null;
-    // }
+    if (!exists) {
+      return null;
+    }
 
     return await file.json();
   } catch (error) {
