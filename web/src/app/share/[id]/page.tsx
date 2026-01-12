@@ -51,6 +51,8 @@ export default async function SharePage({ params }: SharePageProps) {
           opncd.com
         </a>
         <span style={{ color: "#444", margin: "0 8px" }}>/</span>
+        <span style={{ color: "#444", margin: "0 8px" }}>share</span>
+        <span style={{ color: "#444", margin: "0 8px" }}>/</span>
         <span style={{ color: "#ccc" }}>{id}</span>
       </header>
 
