@@ -127,11 +127,11 @@ export function ShareViewer({ data }: ShareViewerProps) {
       />
 
       <main style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
-        {/* Session title with stats - like OpenCode */}
+        {/* Session title with stats - like OpenCode TUI header */}
         <div
           style={{
             backgroundColor: themeStyles.bgSecondary,
-            borderLeft: `3px solid ${themeStyles.primary}`,
+            borderLeft: `3px solid ${themeStyles.border}`,
             paddingLeft: "16px",
             paddingTop: "12px",
             paddingBottom: "12px",
@@ -140,7 +140,6 @@ export function ShareViewer({ data }: ShareViewerProps) {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            borderRadius: "0 4px 4px 0",
           }}
         >
           <h1
