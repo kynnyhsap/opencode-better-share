@@ -1,12 +1,10 @@
-import { appendFileSync } from "node:fs";
-import { join } from "node:path";
 import type { Plugin } from "@opencode-ai/plugin";
-import type { Session } from "@opencode-ai/sdk";
+import type { Message, OpencodeClient, Part, Session } from "@opencode-ai/sdk";
 import { sleep } from "bun";
 import clipboard from "clipboardy";
+import { appendFileSync } from "node:fs";
+import { join } from "node:path";
 import { BETTER_SHARE_BASE_URL, getBetterShareUrl, getShareId, getShareUrl } from "./common";
-import { findProjectForSession, readFullSession } from "./storage";
-import type { ShareData } from "./types";
 
 const LOG_FILE = join(__dirname, "debug.log");
 
@@ -85,6 +83,15 @@ async function overrideClipboardWithBetterShareUrl(sessionID: string) {
   return betterShareUrl;
 }
 
+interface ShareData {
+  shareId: string;
+  sessionId: string;
+  createdAt: number;
+  updatedAt: number;
+  session: Session;
+  messages: Array<{ info: Message; parts: Part[] }>;
+}
+
 async function uploadSession(presignedUrl: string, shareData: ShareData): Promise<boolean> {
   try {
     const response = await fetch(presignedUrl, {
@@ -106,7 +113,7 @@ async function uploadSession(presignedUrl: string, shareData: ShareData): Promis
   }
 }
 
-async function handleSessionShare(session: Session) {
+async function handleSessionShare(session: Session, client: OpencodeClient) {
   if (!session.share?.url) {
     return;
   }
@@ -128,23 +135,15 @@ async function handleSessionShare(session: Session) {
   log("Got presigned URL:", result.presignedUrl);
   log("Secret:", result.secret);
 
-  // Find project ID for this session
-  const projectId = await findProjectForSession(session.id);
-  if (!projectId) {
-    log("Could not find project for session:", session.id);
+  // Get messages using SDK client
+  const messagesResponse = await client.session.messages({ path: { id: session.id } });
+  if (!messagesResponse.data) {
+    log("Could not get session messages");
     return;
   }
 
-  log("Found project:", projectId);
-
-  // Read full session data
-  const sessionData = await readFullSession(projectId, session.id);
-  if (!sessionData) {
-    log("Could not read session data");
-    return;
-  }
-
-  log("Read session with", sessionData.messages.length, "messages");
+  const messages = messagesResponse.data;
+  log("Got", messages.length, "messages from SDK");
 
   // Build share data
   const shareId = getShareId(session.id);
@@ -154,15 +153,15 @@ async function handleSessionShare(session: Session) {
     sessionId: session.id,
     createdAt: now,
     updatedAt: now,
-    session: sessionData.session,
-    messages: sessionData.messages,
+    session,
+    messages,
   };
 
   // Upload to R2
   await uploadSession(result.presignedUrl, shareData);
 }
 
-export const BetterSharePlugin: Plugin = async () => {
+export const BetterSharePlugin: Plugin = async ({ client }) => {
   return {
     config: async (config) => {
       config.theme = "orng"; // DEBUG: remove in production
@@ -171,7 +170,7 @@ export const BetterSharePlugin: Plugin = async () => {
     event: async ({ event }) => {
       switch (event.type) {
         case "session.updated": {
-          await handleSessionShare(event.properties.info);
+          await handleSessionShare(event.properties.info, client);
           break;
         }
 
