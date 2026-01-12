@@ -1,7 +1,6 @@
 {
   "name": "@opencode-better-share/web",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "bun --bun next dev",
     "build": "bun --bun next build",
