@@ -5,6 +5,8 @@ import clipboard from "clipboardy";
 import { appendFileSync } from "node:fs";
 import { join } from "node:path";
 import { BETTER_SHARE_BASE_URL, getBetterShareUrl, getShareId } from "./common";
+import { findProjectForSession, readFullSession } from "./storage";
+import type { ShareData } from "./types";
 
 const LOG_FILE = join(__dirname, "debug.log");
 
@@ -68,6 +70,27 @@ async function overrideClipboard(url: string) {
   }
 }
 
+async function uploadSession(presignedUrl: string, shareData: ShareData): Promise<boolean> {
+  try {
+    const response = await fetch(presignedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(shareData),
+    });
+
+    if (!response.ok) {
+      log("Failed to upload session:", response.status, response.statusText);
+      return false;
+    }
+
+    log("Session uploaded successfully");
+    return true;
+  } catch (error) {
+    log("Error uploading session:", error);
+    return false;
+  }
+}
+
 async function handleSessionShare(session: Session) {
   if (!session.share?.url) {
     return;
@@ -82,15 +105,48 @@ async function handleSessionShare(session: Session) {
     log("Clipboard set to:", betterShareUrl);
   });
 
-  // Then request presigned URL for S3 upload
+  // Request presigned URL for S3 upload
   const result = await requestPresignedUrl(session);
-
-  if (result) {
-    log("Got presigned URL:", result.presignedUrl);
-    log("Secret:", result.secret);
-
-    // TODO: Upload session data to R2 using presignedUrl
+  if (!result) {
+    log("Failed to get presigned URL, aborting upload");
+    return;
   }
+
+  log("Got presigned URL:", result.presignedUrl);
+  log("Secret:", result.secret);
+
+  // Find project ID for this session
+  const projectId = await findProjectForSession(session.id);
+  if (!projectId) {
+    log("Could not find project for session:", session.id);
+    return;
+  }
+
+  log("Found project:", projectId);
+
+  // Read full session data
+  const sessionData = await readFullSession(projectId, session.id);
+  if (!sessionData) {
+    log("Could not read session data");
+    return;
+  }
+
+  log("Read session with", sessionData.messages.length, "messages");
+
+  // Build share data
+  const shareId = getShareId(session.id);
+  const now = Date.now();
+  const shareData: ShareData = {
+    shareId,
+    sessionId: session.id,
+    createdAt: now,
+    updatedAt: now,
+    session: sessionData.session,
+    messages: sessionData.messages,
+  };
+
+  // Upload to R2
+  await uploadSession(result.presignedUrl, shareData);
 }
 
 export const BetterSharePlugin: Plugin = async () => {
