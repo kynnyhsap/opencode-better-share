@@ -155,41 +155,22 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
       />
     ),
 
-    // Tables
+    // Tables - no header background, consistent border color
     table: ({ children, ...props }) => (
       <table
         style={{
           width: "100%",
           borderCollapse: "collapse",
           margin: "1em 0",
-          border: `1px solid ${themeStyles.border}`,
         }}
         {...props}
       >
         {children}
       </table>
     ),
-    thead: ({ children, ...props }) => (
-      <thead
-        style={{
-          backgroundColor: themeStyles.bgSecondary,
-        }}
-        {...props}
-      >
-        {children}
-      </thead>
-    ),
+    thead: ({ children, ...props }) => <thead {...props}>{children}</thead>,
     tbody: ({ children, ...props }) => <tbody {...props}>{children}</tbody>,
-    tr: ({ children, ...props }) => (
-      <tr
-        style={{
-          borderBottom: `1px solid ${themeStyles.border}`,
-        }}
-        {...props}
-      >
-        {children}
-      </tr>
-    ),
+    tr: ({ children, ...props }) => <tr {...props}>{children}</tr>,
     th: ({ children, ...props }) => (
       <th
         style={{
@@ -197,7 +178,7 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
           textAlign: "left",
           fontWeight: 600,
           color: themeStyles.markdownHeading,
-          borderRight: `1px solid ${themeStyles.border}`,
+          border: `1px solid ${themeStyles.border}`,
         }}
         {...props}
       >
@@ -208,7 +189,7 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
       <td
         style={{
           padding: "0.5em 1em",
-          borderRight: `1px solid ${themeStyles.border}`,
+          border: `1px solid ${themeStyles.border}`,
         }}
         {...props}
       >
