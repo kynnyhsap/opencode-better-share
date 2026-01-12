@@ -1,7 +1,6 @@
 import type { Plugin } from "@opencode-ai/plugin";
 import clipboard from "clipboardy";
-
-const BETTER_SHARE_BASE_URL = process.env.BETTER_SHARE_BASE_URL || "https://opncd.com";
+import { BETTER_SHARE_BASE_URL } from "./common";
 
 /**
  * Returns share id from session id. OpenCode's share ID is the last 8 characters of the session ID

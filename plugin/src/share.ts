@@ -1,11 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { BETTER_SHARE_BASE_URL } from "./common";
 import { findProjectForSession, readFullSession } from "./storage";
 import type { ApiError, PresignResponse, ShareData, ShareInfo, SyncPresignResponse } from "./types";
-
-// API base URL - can be configured via env or hardcoded
-const API_BASE_URL = process.env.BETTER_SHARE_API_URL || "https://opncd.com";
 
 // Persistent storage path for share secrets
 const STORAGE_DIR = join(homedir(), ".local", "share", "opencode", "better-share");
@@ -256,7 +254,7 @@ export class ShareManager {
     sessionId: string,
   ): Promise<PresignResponse | ApiError> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/share/presign`, {
+      const response = await fetch(`${BETTER_SHARE_BASE_URL}/api/share/presign`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -284,7 +282,7 @@ export class ShareManager {
     secret: string,
   ): Promise<SyncPresignResponse | ApiError> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/share/${shareId}/presign`, {
+      const response = await fetch(`${BETTER_SHARE_BASE_URL}/api/share/${shareId}/presign`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -329,7 +327,7 @@ export class ShareManager {
    */
   private async deleteShare(shareId: string, secret: string): Promise<boolean> {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/share/${shareId}`, {
+      const response = await fetch(`${BETTER_SHARE_BASE_URL}/api/share/${shareId}`, {
         method: "DELETE",
         headers: {
           "X-Share-Secret": secret,
