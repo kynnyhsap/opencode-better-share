@@ -146,7 +146,7 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
         }}
         {...props}
       >
-        <span style={{ color: themeStyles.textMuted }}>-</span>
+        <span style={{ color: themeStyles.primary }}>-</span>
         <span>{children}</span>
       </li>
     ),
