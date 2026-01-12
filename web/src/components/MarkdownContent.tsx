@@ -119,9 +119,16 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
       </blockquote>
     ),
 
-    // Lists
+    // Lists - use dashes like TUI
     ul: ({ children, ...props }) => (
-      <ul style={{ paddingLeft: "1.5em", margin: "0.5em 0" }} {...props}>
+      <ul
+        style={{
+          paddingLeft: "0",
+          margin: "0.5em 0",
+          listStyle: "none",
+        }}
+        {...props}
+      >
         {children}
       </ul>
     ),
@@ -131,8 +138,16 @@ function createMarkdownComponents(themeStyles: ThemeStyles): Components {
       </ol>
     ),
     li: ({ children, ...props }) => (
-      <li style={{ margin: "0.25em 0" }} {...props}>
-        {children}
+      <li
+        style={{
+          margin: "0.25em 0",
+          display: "flex",
+          gap: "0.5em",
+        }}
+        {...props}
+      >
+        <span style={{ color: themeStyles.textMuted }}>-</span>
+        <span>{children}</span>
       </li>
     ),
 
